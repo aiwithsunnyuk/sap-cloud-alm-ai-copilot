@@ -217,3 +217,108 @@ def workstreams_summary():
         "total_workstreams": len(summaries),
         "workstreams": summaries,
     }
+@app.get("/projects/{project_id}/summary")
+def project_summary(project_id: str):
+    projects = load_json("projects.json")
+    tasks = load_json("tasks.json")
+    dependencies = load_json("dependencies.json")
+    risks = load_json("risks.json")
+
+    project = next(
+        (item for item in projects if item.get("project_id") == project_id),
+        None,
+    )
+
+    if project is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Project not found: {project_id}",
+        )
+
+    project_tasks = [
+        task for task in tasks
+        if task.get("project_id") == project_id
+    ]
+
+    assessments = []
+
+    for task in project_tasks:
+        assessment = calculate_risk_score(
+            task=task,
+            dependencies=dependencies,
+            risks=risks,
+        )
+        assessments.append(assessment)
+
+    risk_scores = [
+        item.get("risk_score", 0)
+        for item in assessments
+    ]
+
+    critical = sum(
+        1
+        for item in assessments
+        if item.get("risk_level") == "Critical"
+    )
+
+    high = sum(
+        1
+        for item in assessments
+        if item.get("risk_level") == "High"
+    )
+
+    medium = sum(
+        1
+        for item in assessments
+        if item.get("risk_level") == "Medium"
+    )
+
+    low = sum(
+        1
+        for item in assessments
+        if item.get("risk_level") == "Low"
+    )
+
+    blocked_tasks = [
+        task for task in project_tasks
+        if task.get("status") == "Blocked"
+    ]
+
+    average_risk_score = round(
+        sum(risk_scores) / len(risk_scores),
+        2,
+    ) if risk_scores else 0
+
+    if critical > 0:
+        overall_health = "Red"
+    elif high > 0:
+        overall_health = "Amber"
+    else:
+        overall_health = "Green"
+
+    highest_risk_task = (
+        max(
+            assessments,
+            key=lambda item: item.get("risk_score", 0),
+        )
+        if assessments
+        else None
+    )
+
+    return {
+        "project_id": project_id,
+        "project_name": project.get("name"),
+        "customer": project.get("customer"),
+        "status": project.get("status"),
+        "start_date": project.get("start_date"),
+        "target_date": project.get("target_date"),
+        "overall_health": overall_health,
+        "total_tasks": len(project_tasks),
+        "critical": critical,
+        "high": high,
+        "medium": medium,
+        "low": low,
+        "average_risk_score": average_risk_score,
+        "blocked_tasks": len(blocked_tasks),
+        "highest_risk_task": highest_risk_task,
+    }
