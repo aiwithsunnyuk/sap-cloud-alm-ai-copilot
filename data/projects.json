@@ -1,0 +1,11 @@
+[
+  {
+    "project_id": "PRJ-001",
+    "name": "S/4HANA Transformation Program",
+    "customer": "Demo Manufacturing Group",
+    "status": "In Progress",
+    "start_date": "2026-06-01",
+    "target_date": "2026-12-15",
+    "overall_health": "Amber"
+  }
+]

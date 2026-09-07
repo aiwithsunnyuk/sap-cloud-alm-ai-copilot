@@ -1,0 +1,37 @@
+[
+  {
+    "workstream_id": "WS-FIN",
+    "project_id": "PRJ-001",
+    "name": "Finance",
+    "lead": "Finance Transformation Team",
+    "status": "Amber"
+  },
+  {
+    "workstream_id": "WS-PROC",
+    "project_id": "PRJ-001",
+    "name": "Procurement",
+    "lead": "Procurement Transformation Team",
+    "status": "Green"
+  },
+  {
+    "workstream_id": "WS-SALES",
+    "project_id": "PRJ-001",
+    "name": "Sales",
+    "lead": "Sales Transformation Team",
+    "status": "Green"
+  },
+  {
+    "workstream_id": "WS-MFG",
+    "project_id": "PRJ-001",
+    "name": "Manufacturing",
+    "lead": "Manufacturing Transformation Team",
+    "status": "Amber"
+  },
+  {
+    "workstream_id": "WS-INT",
+    "project_id": "PRJ-001",
+    "name": "Integration",
+    "lead": "Integration Team",
+    "status": "Red"
+  }
+]

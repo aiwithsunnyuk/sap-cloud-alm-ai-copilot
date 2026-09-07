@@ -1,0 +1,23 @@
+[
+  {
+    "dependency_id": "DEP-001",
+    "from_task": "TASK-002",
+    "to_task": "TASK-001",
+    "type": "Blocks",
+    "status": "Open"
+  },
+  {
+    "dependency_id": "DEP-002",
+    "from_task": "TASK-006",
+    "to_task": "TASK-007",
+    "type": "Blocks",
+    "status": "Open"
+  },
+  {
+    "dependency_id": "DEP-003",
+    "from_task": "TASK-005",
+    "to_task": "TASK-006",
+    "type": "Blocks",
+    "status": "Open"
+  }
+]

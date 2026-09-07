@@ -1,0 +1,35 @@
+[
+  {
+    "risk_id": "RISK-001",
+    "project_id": "PRJ-001",
+    "workstream_id": "WS-FIN",
+    "title": "Chart of Accounts approval delayed",
+    "description": "Finance business owners have not completed final approval.",
+    "severity": "High",
+    "probability": "High",
+    "status": "Open",
+    "mitigation": "Schedule approval workshop with Finance stakeholders."
+  },
+  {
+    "risk_id": "RISK-002",
+    "project_id": "PRJ-001",
+    "workstream_id": "WS-INT",
+    "title": "Integration test environment unavailable",
+    "description": "Required middleware test environment is not ready.",
+    "severity": "Critical",
+    "probability": "High",
+    "status": "Open",
+    "mitigation": "Escalate environment provisioning and establish recovery plan."
+  },
+  {
+    "risk_id": "RISK-003",
+    "project_id": "PRJ-001",
+    "workstream_id": "WS-MFG",
+    "title": "Production planning design changes",
+    "description": "Additional business requirements may affect configuration scope.",
+    "severity": "Medium",
+    "probability": "Medium",
+    "status": "Open",
+    "mitigation": "Complete design validation and change impact assessment."
+  }
+]

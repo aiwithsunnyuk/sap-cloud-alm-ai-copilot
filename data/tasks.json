@@ -1,0 +1,86 @@
+[
+  {
+    "task_id": "TASK-001",
+    "project_id": "PRJ-001",
+    "workstream_id": "WS-FIN",
+    "name": "Configure General Ledger",
+    "owner": "Finance Team",
+    "status": "In Progress",
+    "priority": "High",
+    "planned_start": "2026-08-15",
+    "planned_end": "2026-09-05",
+    "percent_complete": 70
+  },
+  {
+    "task_id": "TASK-002",
+    "project_id": "PRJ-001",
+    "workstream_id": "WS-FIN",
+    "name": "Validate Chart of Accounts",
+    "owner": "Finance Team",
+    "status": "Blocked",
+    "priority": "High",
+    "planned_start": "2026-08-20",
+    "planned_end": "2026-09-08",
+    "percent_complete": 40
+  },
+  {
+    "task_id": "TASK-003",
+    "project_id": "PRJ-001",
+    "workstream_id": "WS-PROC",
+    "name": "Configure Purchase Requisition Workflow",
+    "owner": "Procurement Team",
+    "status": "In Progress",
+    "priority": "Medium",
+    "planned_start": "2026-08-25",
+    "planned_end": "2026-09-15",
+    "percent_complete": 55
+  },
+  {
+    "task_id": "TASK-004",
+    "project_id": "PRJ-001",
+    "workstream_id": "WS-SALES",
+    "name": "Configure Sales Order Processing",
+    "owner": "Sales Team",
+    "status": "In Progress",
+    "priority": "Medium",
+    "planned_start": "2026-09-01",
+    "planned_end": "2026-09-20",
+    "percent_complete": 25
+  },
+  {
+    "task_id": "TASK-005",
+    "project_id": "PRJ-001",
+    "workstream_id": "WS-MFG",
+    "name": "Configure Production Planning",
+    "owner": "Manufacturing Team",
+    "status": "In Progress",
+    "priority": "High",
+    "planned_start": "2026-08-10",
+    "planned_end": "2026-09-12",
+    "percent_complete": 45
+  },
+  {
+    "task_id": "TASK-006",
+    "project_id": "PRJ-001",
+    "workstream_id": "WS-INT",
+    "name": "Complete API Integration Testing",
+    "owner": "Integration Team",
+    "status": "Blocked",
+    "priority": "Critical",
+    "planned_start": "2026-08-18",
+    "planned_end": "2026-09-10",
+    "percent_complete": 30
+  },
+  {
+    "task_id": "TASK-007",
+    "project_id": "PRJ-001",
+    "workstream_id": "WS-INT",
+    "name": "Validate Middleware Interfaces",
+    "owner": "Integration Team",
+    "status": "In Progress",
+    "priority": "High",
+    "planned_start": "2026-08-25",
+    "planned_end": "2026-09-18",
+    "percent_complete": 35
+  }
+]
