@@ -425,3 +425,11 @@ def get_workstream_health(workstream_id: str):
             return explain_project_health(workstream)
 
     return {"detail": "Not Found"}
+
+from app.services.early_warning import generate_early_warnings
+
+
+@app.get("/api/v1/early-warnings")
+def early_warnings():
+    """Return project early-warning indicators."""
+    return generate_early_warnings()
