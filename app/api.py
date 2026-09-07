@@ -322,3 +322,94 @@ def project_summary(project_id: str):
         "blocked_tasks": len(blocked_tasks),
         "highest_risk_task": highest_risk_task,
     }
+@app.get("/workstreams/summary")
+def get_workstream_summary():
+    tasks = load_json("tasks.json")
+    dependencies = load_json("dependencies.json")
+    risks = load_json("risks.json")
+
+    workstreams = {}
+
+    for task in tasks:
+        workstream_id = task.get("workstream_id", "UNKNOWN")
+
+        assessment = calculate_risk_score(
+            task=task,
+            dependencies=dependencies,
+            risks=risks,
+        )
+
+        workstreams.setdefault(workstream_id, []).append(assessment)
+
+    summaries = []
+
+    for workstream_id, items in workstreams.items():
+        critical = sum(
+            1 for item in items
+            if item.get("risk_level") == "Critical"
+        )
+
+        high = sum(
+            1 for item in items
+            if item.get("risk_level") == "High"
+        )
+
+        medium = sum(
+            1 for item in items
+            if item.get("risk_level") == "Medium"
+        )
+
+        low = sum(
+            1 for item in items
+            if item.get("risk_level") == "Low"
+        )
+
+        risk_scores = [
+            item.get("risk_score", 0)
+            for item in items
+        ]
+
+        average_risk_score = round(
+            sum(risk_scores) / len(risk_scores),
+            2
+        ) if risk_scores else 0
+
+        blocked_tasks = [
+            item for item in items
+            if item.get("status") == "Blocked"
+        ]
+
+        highest_risk_task = max(
+            items,
+            key=lambda item: item.get("risk_score", 0)
+        )
+
+        if critical > 0:
+            overall_health = "Red"
+        elif high > 0:
+            overall_health = "Amber"
+        else:
+            overall_health = "Green"
+
+        summaries.append({
+            "workstream_id": workstream_id,
+            "total_tasks": len(items),
+            "critical": critical,
+            "high": high,
+            "medium": medium,
+            "low": low,
+            "average_risk_score": average_risk_score,
+            "blocked_tasks": len(blocked_tasks),
+            "highest_risk_task": {
+                "task_id": highest_risk_task.get("task_id"),
+                "task_name": highest_risk_task.get("task_name"),
+                "risk_score": highest_risk_task.get("risk_score"),
+                "risk_level": highest_risk_task.get("risk_level"),
+            },
+            "overall_health": overall_health,
+        })
+
+    return {
+        "total_workstreams": len(summaries),
+        "workstreams": summaries,
+    }
