@@ -413,3 +413,15 @@ def get_workstream_summary():
         "total_workstreams": len(summaries),
         "workstreams": summaries,
     }
+
+from app.services.health_explainer import explain_project_health
+
+@app.get("/workstreams/{workstream_id}/health")
+def get_workstream_health(workstream_id: str):
+    summary = get_workstream_summary()
+
+    for workstream in summary.get("workstreams", []):
+        if workstream.get("workstream_id") == workstream_id:
+            return explain_project_health(workstream)
+
+    return {"detail": "Not Found"}
