@@ -3,6 +3,15 @@ import json
 
 from fastapi import FastAPI, HTTPException
 
+from app.models.responses import (
+    HealthResponse,
+    RiskSummaryResponse,
+    WorkstreamSummaryResponse,
+    ProjectSummaryResponse,
+    HealthExplanationResponse,
+    EarlyWarningResponse,
+)
+
 from app.services.risk_engine import calculate_risk_score
 
 app = FastAPI(
@@ -28,7 +37,7 @@ def load_json(filename: str):
         return json.load(file)
 
 
-@app.get("/health")
+@app.get("/health", response_model=HealthResponse)
 def health():
     return {
         "status": "healthy",
@@ -80,7 +89,7 @@ def get_task_risk(task_id: str):
     )
 
 
-@app.get("/risks/summary")
+@app.get("/risks/summary", response_model=RiskSummaryResponse)
 def risk_summary():
     tasks = load_json("tasks.json")
     dependencies = load_json("dependencies.json")
@@ -119,7 +128,7 @@ def risk_summary():
 
     return summary
 
-@app.get("/workstreams/summary")
+@app.get("/workstreams/summary", response_model=WorkstreamSummaryResponse)
 def workstreams_summary():
     tasks = load_json("tasks.json")
     dependencies = load_json("dependencies.json")
@@ -217,7 +226,7 @@ def workstreams_summary():
         "total_workstreams": len(summaries),
         "workstreams": summaries,
     }
-@app.get("/projects/{project_id}/summary")
+@app.get("/projects/{project_id}/summary", response_model=ProjectSummaryResponse)
 def project_summary(project_id: str):
     projects = load_json("projects.json")
     tasks = load_json("tasks.json")
@@ -416,7 +425,7 @@ def get_workstream_summary():
 
 from app.services.health_explainer import explain_project_health
 
-@app.get("/workstreams/{workstream_id}/health")
+@app.get("/workstreams/{workstream_id}/health", response_model=HealthExplanationResponse)
 def get_workstream_health(workstream_id: str):
     summary = get_workstream_summary()
 
@@ -429,7 +438,7 @@ def get_workstream_health(workstream_id: str):
 from app.services.early_warning import generate_early_warnings
 
 
-@app.get("/api/v1/early-warnings")
+@app.get("/api/v1/early-warnings", response_model=EarlyWarningResponse)
 def early_warnings():
     """Return project early-warning indicators."""
     return generate_early_warnings()

@@ -1035,13 +1035,13 @@ Important principles:
 
 ## Phase 2 - API quality
 
-- [ ] Pydantic response models
-- [ ] Consistent API response contracts
+- [x] Pydantic response models
+- [x] Consistent API response contracts
 - [ ] Error handling
 - [ ] Unit tests
 - [ ] Integration tests
 - [ ] API versioning
-- [ ] Better OpenAPI documentation
+- [x] Better OpenAPI documentation
 
 ## Phase 3 - Intelligence
 
