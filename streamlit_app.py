@@ -2,9 +2,14 @@ import os
 
 import requests
 import streamlit as st
+from fastapi.testclient import TestClient
+
+from app.api import app as fastapi_app
 
 
-API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
+API_BASE_URL = os.getenv("API_BASE_URL", "").strip().rstrip("/")
+
+_local_client = TestClient(fastapi_app)
 
 
 st.set_page_config(
@@ -15,8 +20,13 @@ st.set_page_config(
 
 
 def api_get(path: str):
-    url = f"{API_BASE_URL.rstrip('/')}{path}"
-    response = requests.get(url, timeout=10)
+    if API_BASE_URL:
+        url = f"{API_BASE_URL}{path}"
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        return response.json()
+
+    response = _local_client.get(path)
     response.raise_for_status()
     return response.json()
 
