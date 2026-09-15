@@ -5,5 +5,3 @@ python-dotenv
 pytest
 httpx
 streamlit==1.63.0
-numpy==1.26.4
-pyarrow==12.0.1
