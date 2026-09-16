@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 
 from fastapi import FastAPI, HTTPException
+from app.models.intelligence_correlation import CorrelationResponse
 from app.models.intelligence import IntelligenceResponse
 from app.models.responses import (
     HealthResponse,
@@ -766,6 +767,7 @@ def get_deployment_api(deployment_id: str):
 
 from app.services.operations_control_tower import calculate_operations_control_tower
 from app.services.intelligence_service import generate_operational_intelligence
+from app.services.intelligence_correlation import generate_operational_correlations
 
 
 @app.get(
@@ -779,3 +781,8 @@ def get_operations_control_tower_api():
 def get_operational_intelligence_api():
     """Get deterministic operational intelligence insights."""
     return generate_operational_intelligence()
+
+@app.get("/intelligence/correlations", response_model=CorrelationResponse)
+def get_operational_correlations_api():
+    """Get cross-domain operational correlations."""
+    return generate_operational_correlations()
