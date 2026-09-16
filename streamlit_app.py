@@ -240,6 +240,158 @@ st.divider()
 # Task risk explorer
 # ------------------------------------------------------------------
 
+# ------------------------------------------------------------
+# Historical risk intelligence
+# ------------------------------------------------------------
+
+st.divider()
+
+st.subheader("📈 Historical Risk Intelligence")
+
+if assessments:
+    historical_task_names = [
+        f"{item.get('task_id', '')} | {item.get('task_name', '')}"
+        for item in assessments
+    ]
+
+    selected_historical_task = st.selectbox(
+        "Select task for historical analysis",
+        historical_task_names,
+        key="historical_risk_task",
+    )
+
+    historical_task_id = selected_historical_task.split(" | ", 1)[0]
+
+    history = api_get(
+        f"/api/v1/tasks/{historical_task_id}/risk-history"
+    )
+
+    trend = api_get(
+        f"/api/v1/tasks/{historical_task_id}/risk-trend"
+    )
+
+    snapshots = history.get("snapshots", [])
+
+    metric_cols = st.columns(6)
+
+    with metric_cols[0]:
+        st.metric(
+            "Starting Risk",
+            trend.get("starting_risk_score", "N/A"),
+        )
+
+    with metric_cols[1]:
+        st.metric(
+            "Current Risk",
+            trend.get("current_risk_score", "N/A"),
+        )
+
+    with metric_cols[2]:
+        risk_change = trend.get("risk_change")
+        st.metric(
+            "Risk Change",
+            f"{risk_change:+d}" if risk_change is not None else "N/A",
+        )
+
+    with metric_cols[3]:
+        velocity = trend.get("risk_velocity")
+        st.metric(
+            "Risk Velocity",
+            f"{velocity:+.2f}" if velocity is not None else "N/A",
+        )
+
+    with metric_cols[4]:
+        st.metric(
+            "Trend",
+            trend.get("trend", "N/A"),
+        )
+
+    with metric_cols[5]:
+        st.metric(
+            "Transition",
+            trend.get("severity_transition", "N/A"),
+        )
+
+    st.markdown("#### Risk Trajectory")
+
+    if snapshots:
+        risk_scores = [
+            snapshot.get("risk_score", 0)
+            for snapshot in snapshots
+        ]
+
+        dates = [
+            snapshot.get("snapshot_date", "")
+            for snapshot in snapshots
+        ]
+
+    import pandas as pd
+
+    trajectory_df = pd.DataFrame(
+        {"Risk Score": risk_scores},
+        index=pd.to_datetime(dates),
+    )
+    trajectory_df.index.name = "Date"
+
+    st.line_chart(
+        trajectory_df,
+        height=280,
+    )
+
+        st.caption(
+            f"Historical observation period: {dates[0]} → {dates[-1]}"
+        )
+
+        st.markdown("#### Historical Snapshots")
+
+        snapshot_rows = [
+            {
+                "Date": snapshot.get("snapshot_date"),
+                "Risk Score": snapshot.get("risk_score"),
+                "Risk Level": snapshot.get("risk_level"),
+            }
+            for snapshot in snapshots
+        ]
+
+        st.dataframe(
+            snapshot_rows,
+            width="stretch",
+            hide_index=True,
+        )
+
+    st.markdown("#### Executive Interpretation")
+
+    starting_score = trend.get("starting_risk_score")
+    current_score = trend.get("current_risk_score")
+    risk_change = trend.get("risk_change")
+    velocity = trend.get("risk_velocity")
+    trend_name = trend.get("trend")
+    transition = trend.get("severity_transition")
+
+    if (
+        starting_score is not None
+        and current_score is not None
+        and risk_change is not None
+        and velocity is not None
+    ):
+        if risk_change > 0:
+            direction = "increased"
+        elif risk_change < 0:
+            direction = "decreased"
+        else:
+            direction = "remained stable"
+
+        st.info(
+            f"{historical_task_id} risk {direction} from "
+            f"{starting_score} to {current_score}, a net change of "
+            f"{risk_change:+d} points. "
+            f"The observed trend is **{trend_name}** with an average "
+            f"movement of **{velocity:+.2f} points per snapshot**. "
+            f"Severity transition: **{transition}**."
+        )
+else:
+    st.info("No task history is available.")
+
 st.subheader("Task Risk Explorer")
 
 if assessments:
