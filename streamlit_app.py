@@ -157,6 +157,428 @@ st.divider()
 # Workstream health
 # ------------------------------------------------------------------
 
+# ===== M9/M10 OPERATIONS INTELLIGENCE COCKPIT =====
+
+st.divider()
+
+st.markdown(
+    """
+    <style>
+    .oi-hero {
+        padding: 1.2rem 1.4rem;
+        border-radius: 14px;
+        border: 1px solid rgba(128,128,128,0.25);
+        margin-bottom: 1rem;
+    }
+
+    .oi-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+    }
+
+    .oi-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.75;
+    }
+
+    .oi-card {
+        padding: 0.9rem;
+        border-radius: 12px;
+        border: 1px solid rgba(128,128,128,0.22);
+        min-height: 92px;
+    }
+
+    .oi-label {
+        font-size: 0.78rem;
+        opacity: 0.7;
+    }
+
+    .oi-value {
+        font-size: 1.55rem;
+        font-weight: 700;
+        margin-top: 0.2rem;
+    }
+
+    .oi-status {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-top: 0.35rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """
+    <div class="oi-hero">
+        <div class="oi-title">🧠 SAP Cloud ALM AI Copilot</div>
+        <div class="oi-subtitle">
+            Operations Intelligence Center · Evidence-driven delivery and
+            operational decision support
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+control_tower = api_get("/operations/control-tower") or {}
+operational_intelligence = api_get("/intelligence/operational") or {}
+correlations = api_get("/intelligence/correlations") or {}
+explanations = api_get("/intelligence/explanations") or {}
+recommendations = api_get("/intelligence/recommendations") or {}
+decision_brief = api_get("/intelligence/decision-brief") or {}
+
+monitoring = control_tower.get("monitoring", {})
+incidents = control_tower.get("incidents", {})
+problems = control_tower.get("problems", {})
+changes = control_tower.get("changes", {})
+releases = control_tower.get("releases", {})
+deployments = control_tower.get("deployments", {})
+
+overall_status = control_tower.get(
+    "overall_status",
+    decision_brief.get("overall_status", "Unknown"),
+)
+
+metrics = [
+    ("Overall Status", overall_status),
+    ("Active Alerts", monitoring.get("active_alerts", 0)),
+    ("Open Incidents", incidents.get("open_incidents", 0)),
+    ("Active Problems", problems.get("active_problems", 0)),
+    ("Pending Approvals", changes.get("pending_approval", 0)),
+    ("Active Releases", releases.get("active_releases", 0)),
+    ("Rolled Back", deployments.get("rolled_back_deployments", 0)),
+    ("Failed Validation", deployments.get("failed_validations", 0)),
+]
+
+metric_columns = st.columns(4)
+
+for index, (label, value) in enumerate(metrics):
+    with metric_columns[index % 4]:
+        st.markdown(
+            f"""
+            <div class="oi-card">
+                <div class="oi-label">{label}</div>
+                <div class="oi-value">{value}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    if index == 3:
+        metric_columns = st.columns(4)
+
+st.write("")
+
+tabs = st.tabs(
+    [
+        "🎛️ Overview",
+        "💡 Intelligence",
+        "🔗 Correlations",
+        "🔍 Explainability",
+        "🎯 Recommendations",
+        "📋 Decision Brief",
+    ]
+)
+
+# ------------------------------------------------------------------
+# Overview
+# ------------------------------------------------------------------
+
+with tabs[0]:
+    st.subheader("Operations Control Tower")
+
+    overview_col1, overview_col2 = st.columns([1.1, 1])
+
+    with overview_col1:
+        st.markdown("**Operational Status**")
+
+        st.info(
+            f"Current environment status: **{overall_status}**"
+        )
+
+        executive_actions = control_tower.get(
+            "executive_actions",
+            [],
+        )
+
+        if executive_actions:
+            st.markdown("**Immediate Review Points**")
+            for action in executive_actions:
+                st.write(f"• {action}")
+
+    with overview_col2:
+        st.markdown("**Affected Scope**")
+
+        affected_components = control_tower.get(
+            "affected_components",
+            [],
+        )
+
+        affected_workstreams = control_tower.get(
+            "affected_workstreams",
+            [],
+        )
+
+        if affected_components:
+            st.markdown("**Components**")
+            st.write(" · ".join(affected_components))
+
+        if affected_workstreams:
+            st.markdown("**Workstreams**")
+            st.write(" · ".join(affected_workstreams))
+
+# ------------------------------------------------------------------
+# Intelligence
+# ------------------------------------------------------------------
+
+with tabs[1]:
+    st.subheader("Operational Intelligence")
+
+    insights = operational_intelligence.get("insights", [])
+
+    if not insights:
+        st.success("No active intelligence insights.")
+    else:
+        for insight in insights:
+            severity = insight.get("severity", "Unknown")
+            title = insight.get("title", "Operational Insight")
+
+            with st.expander(
+                f"{severity} · {title}",
+                expanded=(severity == "Critical"),
+            ):
+                st.write(insight.get("summary", ""))
+
+                evidence = insight.get("evidence", [])
+
+                if evidence:
+                    st.markdown("**Evidence**")
+                    for item in evidence:
+                        st.write(f"• {item}")
+
+                action = insight.get("recommended_action")
+
+                if action:
+                    st.markdown("**Recommended Action**")
+                    st.write(action)
+
+# ------------------------------------------------------------------
+# Correlations
+# ------------------------------------------------------------------
+
+with tabs[2]:
+    st.subheader("Cross-Domain Correlations")
+
+    correlation_items = correlations.get("correlations", [])
+
+    if not correlation_items:
+        st.info("No cross-domain correlations available.")
+    else:
+        for item in correlation_items:
+            severity = item.get("severity", "Unknown")
+            title = item.get("title", "Operational Correlation")
+
+            with st.expander(
+                f"{severity} · {title}",
+                expanded=(severity == "Critical"),
+            ):
+                chain = item.get("causal_chain", [])
+
+                if chain:
+                    st.markdown("**Operational Chain**")
+                    st.code("  →  ".join(chain))
+
+                summary = item.get("summary")
+
+                if summary:
+                    st.write(summary)
+
+                evidence = item.get("evidence", [])
+
+                if evidence:
+                    st.markdown("**Evidence Trail**")
+                    for entry in evidence:
+                        st.write(f"• {entry}")
+
+# ------------------------------------------------------------------
+# Explainability
+# ------------------------------------------------------------------
+
+with tabs[3]:
+    st.subheader("Explainability")
+
+    explanation_items = explanations.get("explanations", [])
+
+    if not explanation_items:
+        st.info("No explanations available.")
+    else:
+        for explanation in explanation_items:
+            severity = explanation.get("severity", "Unknown")
+            title = explanation.get(
+                "title",
+                "Operational Explanation",
+            )
+
+            with st.expander(
+                f"{severity} · {title}",
+                expanded=(severity == "Critical"),
+            ):
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    st.markdown("**What happened?**")
+                    st.write(
+                        explanation.get("what_happened", "")
+                    )
+
+                with col2:
+                    st.markdown("**Why does it matter?**")
+                    st.write(
+                        explanation.get("why_it_matters", "")
+                    )
+
+                st.markdown("**Operational Impact**")
+                st.write(
+                    explanation.get("operational_impact", "")
+                )
+
+                st.markdown("**Evidence**")
+                for evidence_item in explanation.get(
+                    "evidence",
+                    [],
+                ):
+                    st.write(f"• {evidence_item}")
+
+                st.markdown("**Recommended Review**")
+                st.write(
+                    explanation.get("recommended_review", "")
+                )
+
+# ------------------------------------------------------------------
+# Recommendations
+# ------------------------------------------------------------------
+
+with tabs[4]:
+    st.subheader("Prioritized Recommendations")
+
+    recommendation_items = recommendations.get(
+        "recommendations",
+        [],
+    )
+
+    if not recommendation_items:
+        st.success("No operational recommendations.")
+    else:
+        priority_summary = st.columns(3)
+
+        with priority_summary[0]:
+            st.metric(
+                "P1",
+                recommendations.get(
+                    "p1_recommendations",
+                    0,
+                ),
+            )
+
+        with priority_summary[1]:
+            st.metric(
+                "P2",
+                recommendations.get(
+                    "p2_recommendations",
+                    0,
+                ),
+            )
+
+        with priority_summary[2]:
+            st.metric(
+                "Total",
+                recommendations.get(
+                    "total_recommendations",
+                    0,
+                ),
+            )
+
+        for item in recommendation_items:
+            priority = item.get("priority", "P4")
+            score = item.get("priority_score", 0)
+            title = item.get("title", "Recommendation")
+
+            with st.expander(
+                f"{priority} · Score {score} · {title}",
+                expanded=(priority == "P1"),
+            ):
+                st.markdown("**Action**")
+                st.write(item.get("action", ""))
+
+                st.markdown("**Rationale**")
+                st.write(item.get("rationale", ""))
+
+                evidence = item.get("evidence", [])
+
+                if evidence:
+                    st.markdown("**Evidence**")
+                    for evidence_item in evidence:
+                        st.write(f"• {evidence_item}")
+
+                st.caption(
+                    f"Source explanation: "
+                    f"{item.get('source_explanation', 'N/A')}"
+                )
+
+# ------------------------------------------------------------------
+# Decision Brief
+# ------------------------------------------------------------------
+
+with tabs[5]:
+    st.subheader("Executive Decision Brief")
+
+    summary = decision_brief.get("executive_summary")
+
+    if summary:
+        st.info(summary)
+
+    brief_col1, brief_col2 = st.columns(2)
+
+    with brief_col1:
+        st.metric(
+            "Total Risks",
+            decision_brief.get("total_risks", 0),
+        )
+
+    with brief_col2:
+        st.metric(
+            "Priority Actions",
+            decision_brief.get(
+                "priority_actions_count",
+                0,
+            ),
+        )
+
+    st.markdown("**Top Risks**")
+
+    for risk in decision_brief.get("top_risks", []):
+        st.write(f"• {risk}")
+
+    st.markdown("**Decision Points**")
+
+    for point in decision_brief.get("decision_points", []):
+        st.write(f"• {point}")
+
+    evidence = decision_brief.get("evidence", [])
+
+    if evidence:
+        st.markdown("**Evidence Snapshot**")
+        for item in evidence:
+            st.write(f"• {item}")
+
+st.caption(
+    "Decision-support only · Synthetic demo data · "
+    "No autonomous operational actions are executed"
+)
+
 st.subheader("Workstream Health")
 
 workstreams = workstream_data.get("workstreams", [])
