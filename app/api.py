@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 
 from fastapi import FastAPI, HTTPException
+from app.models.intelligence import IntelligenceResponse
 from app.models.responses import (
     HealthResponse,
     RiskSummaryResponse,
@@ -764,6 +765,7 @@ def get_deployment_api(deployment_id: str):
     return deployment.model_dump(mode="json")
 
 from app.services.operations_control_tower import calculate_operations_control_tower
+from app.services.intelligence_service import generate_operational_intelligence
 
 
 @app.get(
@@ -772,3 +774,8 @@ from app.services.operations_control_tower import calculate_operations_control_t
 )
 def get_operations_control_tower_api():
     return calculate_operations_control_tower()
+
+@app.get("/intelligence/operational", response_model=IntelligenceResponse)
+def get_operational_intelligence_api():
+    """Get deterministic operational intelligence insights."""
+    return generate_operational_intelligence()
