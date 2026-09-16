@@ -17,6 +17,13 @@ from app.models.responses import (
     MonitoringHealthResponse,
     MonitoringWarningItem,
     CombinedEarlyWarningResponse,
+    IncidentResponse,
+    IncidentSummaryResponse,
+)
+from app.services.incident_service import (
+    get_incidents,
+    get_incident,
+    get_incident_summary,
 )
 from app.services.monitoring_health import calculate_monitoring_health
 from app.services.risk_engine import calculate_risk_score
@@ -534,3 +541,47 @@ def get_monitoring_health_api():
 )
 def get_monitoring_early_warnings_api():
     return generate_combined_early_warnings()
+@app.get(
+    "/incidents",
+    response_model=list[IncidentResponse],
+)
+def get_incidents_api():
+    return [
+        incident.model_dump(mode="json")
+        for incident in get_incidents()
+    ]
+
+
+@app.get(
+    "/incidents",
+    response_model=list[IncidentResponse],
+)
+def get_incidents_api():
+    return [
+        incident.model_dump(mode="json")
+        for incident in get_incidents()
+    ]
+
+
+@app.get(
+    "/incidents/summary",
+    response_model=IncidentSummaryResponse,
+)
+def get_incident_summary_api():
+    return get_incident_summary()
+
+
+@app.get(
+    "/incidents/{incident_id}",
+    response_model=IncidentResponse,
+)
+def get_incident_api(incident_id: str):
+    incident = get_incident(incident_id)
+
+    if incident is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Incident not found: {incident_id}",
+        )
+
+    return incident.model_dump(mode="json")

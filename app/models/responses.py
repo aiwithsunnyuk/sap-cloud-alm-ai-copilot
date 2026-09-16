@@ -189,3 +189,29 @@ class CombinedEarlyWarningResponse(BaseModel):
     delivery_warnings: list[dict[str, Any]]
     monitoring_warnings: list[MonitoringWarningItem]
     warnings: list[dict[str, Any]]
+class IncidentResponse(BaseModel):
+    incident_id: str
+    alert_id: str
+    event_id: str
+    title: str
+    description: str
+    severity: str
+    priority: str
+    impact: str
+    assigned_team: str
+    status: str
+    opened_at: str
+    resolved_at: str | None = None
+    project_id: str | None = None
+    workstream_id: str | None = None
+
+
+class IncidentSummaryResponse(BaseModel):
+    operational_status: str
+    total_incidents: int
+    open_incidents: int
+    critical_incidents: int
+    high_incidents: int
+    medium_incidents: int
+    resolved_incidents: int
+    affected_workstreams: list[str]
