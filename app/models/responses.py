@@ -240,3 +240,39 @@ class ProblemSummaryResponse(BaseModel):
     unresolved_root_causes: int
     resolved_problems: int
     affected_workstreams: list[str]
+class ChangeResponse(BaseModel):
+    change_id: str
+    title: str
+    description: str
+    change_type: str
+    priority: str
+    status: str
+    problem_id: str | None = None
+    incident_id: str | None = None
+    risk_id: str | None = None
+    affected_component: str
+    affected_workstream: str | None = None
+    business_impact: str
+    technical_impact: str
+    implementation_plan: list[str]
+    validation_plan: list[str]
+    rollback_plan: list[str]
+    requested_by: str
+    assigned_team: str
+    approval_required: bool
+    approved_by: str | None = None
+    opened_at: str
+    planned_implementation_at: str | None = None
+    completed_at: str | None = None
+
+
+class ChangeSummaryResponse(BaseModel):
+    operational_status: str
+    total_changes: int
+    active_changes: int
+    pending_approval: int
+    implementing: int
+    validation: int
+    completed_changes: int
+    approval_required: int
+    affected_workstreams: list[str]

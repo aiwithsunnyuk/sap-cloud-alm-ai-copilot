@@ -1,0 +1,107 @@
+[
+  {
+    "change_id": "CHG-001",
+    "title": "Correct Order Integration Authentication Configuration",
+    "description": "Correct the authentication configuration responsible for repeated Order Integration failures.",
+    "change_type": "Normal",
+    "priority": "P1",
+    "status": "Pending Approval",
+    "problem_id": "PRB-001",
+    "incident_id": "INC-003",
+    "risk_id": null,
+    "affected_component": "Order Integration",
+    "affected_workstream": "WS-INT",
+    "business_impact": "Potential interruption of order processing.",
+    "technical_impact": "Integration authentication configuration will be updated.",
+    "implementation_plan": [
+      "Validate the target authentication configuration.",
+      "Apply the approved configuration change.",
+      "Restart or refresh the affected integration if required."
+    ],
+    "validation_plan": [
+      "Execute a controlled integration test.",
+      "Verify successful order processing.",
+      "Monitor integration alerts after deployment."
+    ],
+    "rollback_plan": [
+      "Restore the previous authentication configuration.",
+      "Re-run integration validation."
+    ],
+    "requested_by": "Integration Support",
+    "assigned_team": "Integration Engineering",
+    "approval_required": true,
+    "approved_by": null,
+    "opened_at": "2026-09-16T11:00:00",
+    "planned_implementation_at": "2026-09-17T10:00:00",
+    "completed_at": null
+  },
+  {
+    "change_id": "CHG-002",
+    "title": "Optimize Order API Performance",
+    "description": "Implement a performance optimization to address Order API response-time degradation.",
+    "change_type": "Normal",
+    "priority": "P2",
+    "status": "Assessment",
+    "problem_id": "PRB-002",
+    "incident_id": "INC-002",
+    "risk_id": null,
+    "affected_component": "Order API",
+    "affected_workstream": "WS-INT",
+    "business_impact": "Improved application responsiveness and reduced user-facing delays.",
+    "technical_impact": "Application configuration and performance parameters may require adjustment.",
+    "implementation_plan": [
+      "Review performance findings.",
+      "Identify the optimization candidate.",
+      "Apply the change in a controlled environment."
+    ],
+    "validation_plan": [
+      "Measure API response time.",
+      "Execute functional regression checks.",
+      "Monitor post-change performance."
+    ],
+    "rollback_plan": [
+      "Restore the previous configuration.",
+      "Re-run performance validation."
+    ],
+    "requested_by": "Application Support",
+    "assigned_team": "Application Engineering",
+    "approval_required": true,
+    "approved_by": null,
+    "opened_at": "2026-09-16T11:15:00",
+    "planned_implementation_at": null,
+    "completed_at": null
+  },
+  {
+    "change_id": "CHG-003",
+    "title": "Routine Customer Synchronization Configuration Update",
+    "description": "Apply a routine configuration adjustment to improve scheduled customer synchronization stability.",
+    "change_type": "Standard",
+    "priority": "P3",
+    "status": "Completed",
+    "problem_id": null,
+    "incident_id": "INC-004",
+    "risk_id": null,
+    "affected_component": "Customer Sync Job",
+    "affected_workstream": "WS-DATA",
+    "business_impact": "Reduced likelihood of synchronization delays.",
+    "technical_impact": "Scheduled job configuration was adjusted.",
+    "implementation_plan": [
+      "Update approved job configuration.",
+      "Execute scheduled synchronization."
+    ],
+    "validation_plan": [
+      "Verify successful job completion.",
+      "Confirm synchronization records."
+    ],
+    "rollback_plan": [
+      "Restore the previous job configuration."
+    ],
+    "requested_by": "Data Operations",
+    "assigned_team": "Data Engineering",
+    "approval_required": false,
+    "approved_by": null,
+    "opened_at": "2026-09-16T11:30:00",
+    "planned_implementation_at": "2026-09-16T12:00:00",
+    "completed_at": "2026-09-16T12:45:00"
+  }
+]

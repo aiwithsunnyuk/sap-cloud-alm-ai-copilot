@@ -21,7 +21,15 @@ from app.models.responses import (
     IncidentSummaryResponse,
     ProblemResponse,
     ProblemSummaryResponse,
+    ChangeResponse,
+    ChangeSummaryResponse,
 )
+from app.services.change_service import (
+    get_changes,
+    get_change,
+    get_change_summary,
+)
+
 from app.services.problem_service import (
     get_problems,
     get_problem,
@@ -625,3 +633,36 @@ def get_problem_api(problem_id: str):
         )
 
     return problem.model_dump(mode="json")
+@app.get(
+    "/changes",
+    response_model=list[ChangeResponse],
+)
+def get_changes_api():
+    return [
+        change.model_dump(mode="json")
+        for change in get_changes()
+    ]
+
+
+@app.get(
+    "/changes/summary",
+    response_model=ChangeSummaryResponse,
+)
+def get_change_summary_api():
+    return get_change_summary()
+
+
+@app.get(
+    "/changes/{change_id}",
+    response_model=ChangeResponse,
+)
+def get_change_api(change_id: str):
+    change = get_change(change_id)
+
+    if change is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Change not found: {change_id}",
+        )
+
+    return change.model_dump(mode="json")
