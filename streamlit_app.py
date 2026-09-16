@@ -338,26 +338,26 @@ if assessments:
         height=280,
     )
 
-        st.caption(
-            f"Historical observation period: {dates[0]} → {dates[-1]}"
-        )
+    st.caption(
+        f"Historical observation period: {dates[0]} → {dates[-1]}"
+    )
 
-        st.markdown("#### Historical Snapshots")
+    st.markdown("#### Historical Snapshots")
 
-        snapshot_rows = [
-            {
-                "Date": snapshot.get("snapshot_date"),
-                "Risk Score": snapshot.get("risk_score"),
-                "Risk Level": snapshot.get("risk_level"),
-            }
-            for snapshot in snapshots
-        ]
+    snapshot_rows = [
+        {
+            "Date": snapshot.get("snapshot_date"),
+            "Risk Score": snapshot.get("risk_score"),
+            "Risk Level": snapshot.get("risk_level"),
+        }
+        for snapshot in snapshots
+    ]
 
-        st.dataframe(
-            snapshot_rows,
-            width="stretch",
-            hide_index=True,
-        )
+    st.dataframe(
+        snapshot_rows,
+        width="stretch",
+        hide_index=True,
+    )
 
     st.markdown("#### Executive Interpretation")
 
