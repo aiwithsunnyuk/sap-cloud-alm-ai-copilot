@@ -1,0 +1,45 @@
+[
+  {
+    "problem_id": "PRB-001",
+    "title": "Order integration instability",
+    "description": "Repeated order integration failures indicate an underlying integration reliability problem.",
+    "priority": "P1",
+    "status": "Root Cause Identified",
+    "related_incident_ids": [
+      "INC-001",
+      "INC-003"
+    ],
+    "affected_component": "Order Integration",
+    "affected_workstream": "WS-INT",
+    "root_cause": "Authentication failures are causing repeated integration requests to be rejected.",
+    "investigation_findings": [
+      "Multiple incidents originated from the same integration component.",
+      "Failures increased during scheduled integration activity.",
+      "Authentication errors were observed across repeated events."
+    ],
+    "corrective_action": "Validate and correct the integration authentication configuration.",
+    "preventive_action": "Introduce authentication health checks and proactive credential-expiry monitoring.",
+    "opened_at": "2026-09-16T10:30:00",
+    "resolved_at": null
+  },
+  {
+    "problem_id": "PRB-002",
+    "title": "Order API performance degradation",
+    "description": "Repeated response-time degradation requires investigation of the underlying performance condition.",
+    "priority": "P2",
+    "status": "Investigating",
+    "related_incident_ids": [
+      "INC-002"
+    ],
+    "affected_component": "Order API",
+    "affected_workstream": "WS-INT",
+    "root_cause": null,
+    "investigation_findings": [
+      "API response time exceeded the defined operational threshold."
+    ],
+    "corrective_action": null,
+    "preventive_action": null,
+    "opened_at": "2026-09-16T10:35:00",
+    "resolved_at": null
+  }
+]

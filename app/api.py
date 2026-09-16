@@ -19,6 +19,13 @@ from app.models.responses import (
     CombinedEarlyWarningResponse,
     IncidentResponse,
     IncidentSummaryResponse,
+    ProblemResponse,
+    ProblemSummaryResponse,
+)
+from app.services.problem_service import (
+    get_problems,
+    get_problem,
+    get_problem_summary,
 )
 from app.services.incident_service import (
     get_incidents,
@@ -585,3 +592,36 @@ def get_incident_api(incident_id: str):
         )
 
     return incident.model_dump(mode="json")
+@app.get(
+    "/problems",
+    response_model=list[ProblemResponse],
+)
+def get_problems_api():
+    return [
+        problem.model_dump(mode="json")
+        for problem in get_problems()
+    ]
+
+
+@app.get(
+    "/problems/summary",
+    response_model=ProblemSummaryResponse,
+)
+def get_problem_summary_api():
+    return get_problem_summary()
+
+
+@app.get(
+    "/problems/{problem_id}",
+    response_model=ProblemResponse,
+)
+def get_problem_api(problem_id: str):
+    problem = get_problem(problem_id)
+
+    if problem is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Problem not found: {problem_id}",
+        )
+
+    return problem.model_dump(mode="json")

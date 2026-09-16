@@ -215,3 +215,28 @@ class IncidentSummaryResponse(BaseModel):
     medium_incidents: int
     resolved_incidents: int
     affected_workstreams: list[str]
+class ProblemResponse(BaseModel):
+    problem_id: str
+    title: str
+    description: str
+    priority: str
+    status: str
+    related_incident_ids: list[str]
+    affected_component: str
+    affected_workstream: str | None = None
+    root_cause: str | None = None
+    investigation_findings: list[str]
+    corrective_action: str | None = None
+    preventive_action: str | None = None
+    opened_at: str
+    resolved_at: str | None = None
+
+
+class ProblemSummaryResponse(BaseModel):
+    operational_status: str
+    total_problems: int
+    active_problems: int
+    root_cause_identified: int
+    unresolved_root_causes: int
+    resolved_problems: int
+    affected_workstreams: list[str]
