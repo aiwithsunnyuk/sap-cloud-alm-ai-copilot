@@ -325,39 +325,39 @@ if assessments:
             for snapshot in snapshots
         ]
 
-    import pandas as pd
+        import pandas as pd
 
-    trajectory_df = pd.DataFrame(
-        {"Risk Score": risk_scores},
-        index=pd.to_datetime(dates),
-    )
-    trajectory_df.index.name = "Date"
+        trajectory_df = pd.DataFrame(
+            {"Risk Score": risk_scores},
+            index=pd.to_datetime(dates),
+        )
+        trajectory_df.index.name = "Date"
 
-    st.line_chart(
-        trajectory_df,
-        height=280,
-    )
+        st.line_chart(
+            trajectory_df,
+            height=280,
+        )
 
-    st.caption(
-        f"Historical observation period: {dates[0]} → {dates[-1]}"
-    )
+        st.caption(
+            f"Historical observation period: {dates[0]} → {dates[-1]}"
+        )
 
-    st.markdown("#### Historical Snapshots")
+        st.markdown("#### Historical Snapshots")
 
-    snapshot_rows = [
+        snapshot_rows = [
         {
             "Date": snapshot.get("snapshot_date"),
             "Risk Score": snapshot.get("risk_score"),
             "Risk Level": snapshot.get("risk_level"),
         }
         for snapshot in snapshots
-    ]
+        ]
 
-    st.dataframe(
+        st.dataframe(
         snapshot_rows,
         width="stretch",
         hide_index=True,
-    )
+        )
 
     st.markdown("#### Executive Interpretation")
 
