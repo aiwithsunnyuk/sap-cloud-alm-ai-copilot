@@ -14,7 +14,9 @@ from app.models.responses import (
     MonitoringEventResponse,
     MonitoringAlertResponse,
     MonitoringSummaryResponse,
+    MonitoringHealthResponse,
 )
+from app.services.monitoring_health import calculate_monitoring_health
 from app.services.risk_engine import calculate_risk_score
 from app.services.historical_risk import get_task_history
 from app.services.risk_trend import calculate_risk_trend
@@ -518,3 +520,9 @@ def get_monitoring_alerts_api():
 )
 def get_monitoring_summary_api():
     return get_monitoring_summary()
+@app.get(
+    "/monitoring/health",
+    response_model=MonitoringHealthResponse,
+)
+def get_monitoring_health_api():
+    return calculate_monitoring_health()

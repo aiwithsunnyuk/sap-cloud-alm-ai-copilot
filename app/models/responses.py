@@ -153,3 +153,16 @@ class MonitoringSummaryResponse(BaseModel):
     high_events: int
     medium_events: int
     affected_components: list[str]
+class MonitoringHealthResponse(BaseModel):
+    overall_status: str
+    health_score: int
+    total_events: int
+    active_events: int
+    active_alerts: int
+    critical_alerts: int
+    high_alerts: int
+    medium_alerts: int
+    low_alerts: int
+    affected_components: list[str]
+    key_drivers: list[str]
+    recommended_actions: list[str]
