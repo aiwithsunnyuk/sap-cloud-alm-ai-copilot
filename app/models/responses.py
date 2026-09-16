@@ -315,3 +315,35 @@ class ReleaseGovernanceResponse(BaseModel):
     reason: str
     change_status: str | None = None
     release_status: str | None = None
+
+
+class DeploymentResponse(BaseModel):
+    deployment_id: str
+    release_id: str
+    change_id: str
+    environment: str
+    deployment_package: str
+    deployment_status: str
+    validation_status: str
+    rollback_status: str
+    deployment_owner: str
+    validation_owner: str
+    validation_checks: list[str]
+    validation_evidence: list[str]
+    rollback_required: bool
+    started_at: str
+    completed_at: str | None = None
+    deployment_notes: str | None = None
+    validation_notes: str | None = None
+    rollback_notes: str | None = None
+
+
+class DeploymentSummaryResponse(BaseModel):
+    total_deployments: int
+    successful_deployments: int
+    failed_deployments: int
+    rolled_back_deployments: int
+    passed_validations: int
+    failed_validations: int
+    rollback_required: int
+    affected_environments: list[str]

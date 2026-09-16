@@ -26,6 +26,8 @@ from app.models.responses import (
     ReleaseResponse,
     ReleaseSummaryResponse,
     ReleaseGovernanceResponse,
+    DeploymentResponse,
+    DeploymentSummaryResponse,
 )
 from app.services.release_service import (
     get_releases,
@@ -718,3 +720,44 @@ def get_release_api(release_id: str):
 )
 def get_release_governance_api(release_id: str):
     return validate_release_governance(release_id)
+
+from app.services.deployment_service import (
+    get_deployments,
+    get_deployment,
+    get_deployment_summary,
+)
+
+
+@app.get(
+    "/deployments",
+    response_model=list[DeploymentResponse],
+)
+def get_deployments_api():
+    return [
+        deployment.model_dump(mode="json")
+        for deployment in get_deployments()
+    ]
+
+
+@app.get(
+    "/deployments/summary",
+    response_model=DeploymentSummaryResponse,
+)
+def get_deployment_summary_api():
+    return get_deployment_summary()
+
+
+@app.get(
+    "/deployments/{deployment_id}",
+    response_model=DeploymentResponse,
+)
+def get_deployment_api(deployment_id: str):
+    deployment = get_deployment(deployment_id)
+
+    if deployment is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Deployment not found: {deployment_id}",
+        )
+
+    return deployment.model_dump(mode="json")

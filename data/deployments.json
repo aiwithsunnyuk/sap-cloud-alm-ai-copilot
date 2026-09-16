@@ -1,0 +1,86 @@
+[
+  {
+    "deployment_id": "DEP-001",
+    "release_id": "REL-001",
+    "change_id": "CHG-001",
+    "environment": "Production",
+    "deployment_package": "PKG-ORDER-AUTH-001",
+    "deployment_status": "Rolled Back",
+    "validation_status": "Failed",
+    "rollback_status": "Completed",
+    "deployment_owner": "Integration Engineering",
+    "validation_owner": "Integration Support",
+    "validation_checks": [
+      "Integration connectivity test",
+      "Controlled order transaction",
+      "Post-deployment alert monitoring"
+    ],
+    "validation_evidence": [
+      "Connectivity test failed after deployment.",
+      "Controlled order transaction was rejected.",
+      "Order Integration critical alert remained active."
+    ],
+    "rollback_required": true,
+    "started_at": "2026-09-17T10:05:00",
+    "completed_at": "2026-09-17T10:32:00",
+    "deployment_notes": "Deployment completed but validation identified continued authentication failures.",
+    "validation_notes": "Post-deployment validation failed.",
+    "rollback_notes": "Previous authentication configuration restored successfully."
+  },
+  {
+    "deployment_id": "DEP-002",
+    "release_id": "REL-002",
+    "change_id": "CHG-002",
+    "environment": "Test",
+    "deployment_package": "PKG-ORDER-API-PERF-001",
+    "deployment_status": "Successful",
+    "validation_status": "Passed",
+    "rollback_status": "Not Required",
+    "deployment_owner": "Application Engineering",
+    "validation_owner": "Application Support",
+    "validation_checks": [
+      "API response-time measurement",
+      "Functional regression test",
+      "Performance baseline comparison"
+    ],
+    "validation_evidence": [
+      "Average response time improved against the test baseline.",
+      "Functional regression checks completed successfully.",
+      "No new monitoring alerts were detected."
+    ],
+    "rollback_required": false,
+    "started_at": "2026-09-17T14:05:00",
+    "completed_at": "2026-09-17T14:28:00",
+    "deployment_notes": "Performance optimization deployed successfully in the test environment.",
+    "validation_notes": "All planned validation checks passed.",
+    "rollback_notes": null
+  },
+  {
+    "deployment_id": "DEP-003",
+    "release_id": "REL-003",
+    "change_id": "CHG-003",
+    "environment": "Production",
+    "deployment_package": "PKG-CUSTOMER-SYNC-001",
+    "deployment_status": "Successful",
+    "validation_status": "Passed",
+    "rollback_status": "Not Required",
+    "deployment_owner": "Data Engineering",
+    "validation_owner": "Data Operations",
+    "validation_checks": [
+      "Job completion verification",
+      "Record synchronization verification",
+      "Post-deployment monitoring"
+    ],
+    "validation_evidence": [
+      "Customer synchronization job completed successfully.",
+      "Expected records were synchronized.",
+      "No post-deployment synchronization alerts were detected."
+    ],
+    "rollback_required": false,
+    "started_at": "2026-09-16T12:05:00",
+    "completed_at": "2026-09-16T12:45:00",
+    "deployment_notes": "Routine production deployment completed successfully.",
+    "validation_notes": "Validation completed successfully.",
+    "rollback_notes": null
+  }
+]
