@@ -15,6 +15,8 @@ from app.models.responses import (
     MonitoringAlertResponse,
     MonitoringSummaryResponse,
     MonitoringHealthResponse,
+    MonitoringWarningItem,
+    CombinedEarlyWarningResponse,
 )
 from app.services.monitoring_health import calculate_monitoring_health
 from app.services.risk_engine import calculate_risk_score
@@ -526,3 +528,9 @@ def get_monitoring_summary_api():
 )
 def get_monitoring_health_api():
     return calculate_monitoring_health()
+@app.get(
+    "/api/v1/monitoring-early-warnings",
+    response_model=CombinedEarlyWarningResponse,
+)
+def get_monitoring_early_warnings_api():
+    return generate_combined_early_warnings()

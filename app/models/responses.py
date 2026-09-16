@@ -166,3 +166,26 @@ class MonitoringHealthResponse(BaseModel):
     affected_components: list[str]
     key_drivers: list[str]
     recommended_actions: list[str]
+class MonitoringWarningItem(BaseModel):
+    warning_type: str
+    severity: str
+    message: str
+    recommended_action: str
+    component: str
+    event_id: str
+    alert_id: str
+    project_id: str | None = None
+    workstream_id: str | None = None
+
+
+class CombinedEarlyWarningResponse(BaseModel):
+    overall_status: str
+    total_warnings: int
+    critical_warnings: int
+    high_warnings: int
+    affected_tasks: list[dict[str, Any]]
+    affected_workstreams: list[str]
+    executive_action: str
+    delivery_warnings: list[dict[str, Any]]
+    monitoring_warnings: list[MonitoringWarningItem]
+    warnings: list[dict[str, Any]]
