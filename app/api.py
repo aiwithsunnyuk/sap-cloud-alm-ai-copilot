@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 
 from fastapi import FastAPI, HTTPException
+from app.models.intelligence_decision_brief import DecisionBriefResponse
 from app.models.intelligence_recommendation import RecommendationResponse
 from app.models.intelligence_explanation import ExplanationResponse
 from app.models.intelligence_correlation import CorrelationResponse
@@ -772,6 +773,7 @@ from app.services.intelligence_service import generate_operational_intelligence
 from app.services.intelligence_correlation import generate_operational_correlations
 from app.services.intelligence_explanation import generate_operational_explanations
 from app.services.intelligence_recommendation import generate_operational_recommendations
+from app.services.intelligence_decision_brief import generate_operational_decision_brief
 
 
 @app.get(
@@ -803,3 +805,11 @@ def get_operational_explanations_api():
 def get_operational_recommendations_api():
     """Get prioritized operational recommendations."""
     return generate_operational_recommendations()
+
+@app.get(
+    "/intelligence/decision-brief",
+    response_model=DecisionBriefResponse,
+)
+def get_operational_decision_brief_api():
+    """Get the consolidated operational decision brief."""
+    return generate_operational_decision_brief()
