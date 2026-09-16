@@ -28,6 +28,7 @@ from app.models.responses import (
     ReleaseGovernanceResponse,
     DeploymentResponse,
     DeploymentSummaryResponse,
+    OperationsControlTowerResponse,
 )
 from app.services.release_service import (
     get_releases,
@@ -761,3 +762,13 @@ def get_deployment_api(deployment_id: str):
         )
 
     return deployment.model_dump(mode="json")
+
+from app.services.operations_control_tower import calculate_operations_control_tower
+
+
+@app.get(
+    "/operations/control-tower",
+    response_model=OperationsControlTowerResponse,
+)
+def get_operations_control_tower_api():
+    return calculate_operations_control_tower()

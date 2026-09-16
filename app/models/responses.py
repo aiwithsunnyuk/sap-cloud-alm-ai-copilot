@@ -347,3 +347,18 @@ class DeploymentSummaryResponse(BaseModel):
     failed_validations: int
     rollback_required: int
     affected_environments: list[str]
+
+
+class OperationsControlTowerResponse(BaseModel):
+    overall_status: str
+
+    monitoring: dict
+    incidents: dict
+    problems: dict
+    changes: dict
+    releases: dict
+    deployments: dict
+
+    affected_components: list[str]
+    affected_workstreams: list[str]
+    executive_actions: list[str]
