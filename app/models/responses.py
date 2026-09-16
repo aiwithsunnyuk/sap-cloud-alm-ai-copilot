@@ -276,3 +276,42 @@ class ChangeSummaryResponse(BaseModel):
     completed_changes: int
     approval_required: int
     affected_workstreams: list[str]
+class ReleaseResponse(BaseModel):
+    release_id: str
+    change_id: str
+    title: str
+    description: str
+    release_type: str
+    status: str
+    deployment_status: str
+    environment: str
+    deployment_package: str
+    implementation_steps: list[str]
+    validation_steps: list[str]
+    rollback_steps: list[str]
+    deployment_owner: str
+    validation_owner: str
+    planned_at: str
+    deployed_at: str | None = None
+    completed_at: str | None = None
+    release_notes: str | None = None
+
+
+class ReleaseSummaryResponse(BaseModel):
+    total_releases: int
+    active_releases: int
+    planned_releases: int
+    ready_releases: int
+    deploying_releases: int
+    validating_releases: int
+    completed_releases: int
+    successful_deployments: int
+    affected_environments: list[str]
+
+
+class ReleaseGovernanceResponse(BaseModel):
+    release_id: str
+    eligible: bool
+    reason: str
+    change_status: str | None = None
+    release_status: str | None = None

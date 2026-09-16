@@ -1,0 +1,92 @@
+[
+  {
+    "release_id": "REL-001",
+    "change_id": "CHG-001",
+    "title": "Order Integration Authentication Fix",
+    "description": "Release containing the approved authentication configuration correction for Order Integration.",
+    "release_type": "Major",
+    "status": "Planned",
+    "deployment_status": "Not Started",
+    "environment": "Production",
+    "deployment_package": "PKG-ORDER-AUTH-001",
+    "implementation_steps": [
+      "Validate approved change package.",
+      "Deploy authentication configuration.",
+      "Restart or refresh integration services if required."
+    ],
+    "validation_steps": [
+      "Execute integration connectivity test.",
+      "Process a controlled order transaction.",
+      "Monitor integration alerts after deployment."
+    ],
+    "rollback_steps": [
+      "Restore previous authentication configuration.",
+      "Restart integration services if required.",
+      "Re-run connectivity validation."
+    ],
+    "deployment_owner": "Integration Engineering",
+    "validation_owner": "Integration Support",
+    "planned_at": "2026-09-17T10:00:00",
+    "deployed_at": null,
+    "completed_at": null,
+    "release_notes": "Addresses repeated order integration authentication failures."
+  },
+  {
+    "release_id": "REL-002",
+    "change_id": "CHG-002",
+    "title": "Order API Performance Optimization",
+    "description": "Release for the approved performance optimization of the Order API.",
+    "release_type": "Standard",
+    "status": "Ready",
+    "deployment_status": "Not Started",
+    "environment": "Test",
+    "deployment_package": "PKG-ORDER-API-PERF-001",
+    "implementation_steps": [
+      "Deploy performance configuration.",
+      "Restart application components if required."
+    ],
+    "validation_steps": [
+      "Measure API response time.",
+      "Run functional regression tests.",
+      "Compare results with baseline performance."
+    ],
+    "rollback_steps": [
+      "Restore previous performance configuration.",
+      "Restart affected application components."
+    ],
+    "deployment_owner": "Application Engineering",
+    "validation_owner": "Application Support",
+    "planned_at": "2026-09-17T14:00:00",
+    "deployed_at": null,
+    "completed_at": null,
+    "release_notes": "Initial performance optimization release for validation."
+  },
+  {
+    "release_id": "REL-003",
+    "change_id": "CHG-003",
+    "title": "Customer Synchronization Configuration Update",
+    "description": "Completed routine release for the customer synchronization configuration update.",
+    "release_type": "Standard",
+    "status": "Completed",
+    "deployment_status": "Successful",
+    "environment": "Production",
+    "deployment_package": "PKG-CUSTOMER-SYNC-001",
+    "implementation_steps": [
+      "Deploy approved job configuration.",
+      "Execute customer synchronization job."
+    ],
+    "validation_steps": [
+      "Verify successful job completion.",
+      "Confirm synchronized records."
+    ],
+    "rollback_steps": [
+      "Restore previous job configuration."
+    ],
+    "deployment_owner": "Data Engineering",
+    "validation_owner": "Data Operations",
+    "planned_at": "2026-09-16T12:00:00",
+    "deployed_at": "2026-09-16T12:15:00",
+    "completed_at": "2026-09-16T12:45:00",
+    "release_notes": "Routine configuration update completed successfully."
+  }
+]

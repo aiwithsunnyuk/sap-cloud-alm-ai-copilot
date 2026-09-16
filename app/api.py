@@ -23,7 +23,17 @@ from app.models.responses import (
     ProblemSummaryResponse,
     ChangeResponse,
     ChangeSummaryResponse,
+    ReleaseResponse,
+    ReleaseSummaryResponse,
+    ReleaseGovernanceResponse,
 )
+from app.services.release_service import (
+    get_releases,
+    get_release,
+    get_release_summary,
+)
+from app.services.release_governance import validate_release_governance
+
 from app.services.change_service import (
     get_changes,
     get_change,
@@ -666,3 +676,45 @@ def get_change_api(change_id: str):
         )
 
     return change.model_dump(mode="json")
+@app.get(
+    "/releases",
+    response_model=list[ReleaseResponse],
+)
+def get_releases_api():
+    return [
+        release.model_dump(mode="json")
+        for release in get_releases()
+    ]
+
+
+@app.get(
+    "/releases/summary",
+    response_model=ReleaseSummaryResponse,
+)
+def get_release_summary_api():
+    return get_release_summary()
+
+
+@app.get(
+    "/releases/{release_id}",
+    response_model=ReleaseResponse,
+)
+def get_release_api(release_id: str):
+    release = get_release(release_id)
+
+    if release is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Release not found: {release_id}",
+        )
+
+    return release.model_dump(mode="json")
+
+
+
+@app.get(
+    "/releases/{release_id}/governance",
+    response_model=ReleaseGovernanceResponse,
+)
+def get_release_governance_api(release_id: str):
+    return validate_release_governance(release_id)
