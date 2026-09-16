@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 
 from fastapi import FastAPI, HTTPException
+from app.models.intelligence_explanation import ExplanationResponse
 from app.models.intelligence_correlation import CorrelationResponse
 from app.models.intelligence import IntelligenceResponse
 from app.models.responses import (
@@ -768,6 +769,7 @@ def get_deployment_api(deployment_id: str):
 from app.services.operations_control_tower import calculate_operations_control_tower
 from app.services.intelligence_service import generate_operational_intelligence
 from app.services.intelligence_correlation import generate_operational_correlations
+from app.services.intelligence_explanation import generate_operational_explanations
 
 
 @app.get(
@@ -786,3 +788,8 @@ def get_operational_intelligence_api():
 def get_operational_correlations_api():
     """Get cross-domain operational correlations."""
     return generate_operational_correlations()
+
+@app.get("/intelligence/explanations", response_model=ExplanationResponse)
+def get_operational_explanations_api():
+    """Get deterministic explanations for operational correlations."""
+    return generate_operational_explanations()
