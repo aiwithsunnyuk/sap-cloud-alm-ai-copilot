@@ -96,3 +96,26 @@ class EarlyWarningResponse(BaseModel):
     affected_tasks: list[dict[str, Any]]
     executive_action: str
     warnings: list[EarlyWarningItem]
+
+
+class RiskHistoryItem(BaseModel):
+    snapshot_date: str
+    task_id: str
+    risk_score: int
+    risk_level: str
+
+
+class RiskHistoryResponse(BaseModel):
+    task_id: str
+    snapshots: list[RiskHistoryItem]
+
+
+class RiskTrendResponse(BaseModel):
+    task_id: str
+    snapshot_count: int
+    starting_risk_score: int | None
+    current_risk_score: int | None
+    risk_change: int | None
+    risk_velocity: float | None
+    trend: str
+    severity_transition: str | None

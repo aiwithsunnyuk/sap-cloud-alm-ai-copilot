@@ -10,9 +10,13 @@ from app.models.responses import (
     ProjectSummaryResponse,
     HealthExplanationResponse,
     EarlyWarningResponse,
+    RiskHistoryResponse,
+    RiskTrendResponse,
 )
 
 from app.services.risk_engine import calculate_risk_score
+from app.services.historical_risk import get_task_history
+from app.services.risk_trend import calculate_risk_trend
 
 app = FastAPI(
     title="SAP Cloud ALM AI Copilot",
@@ -442,3 +446,38 @@ from app.services.early_warning import generate_early_warnings
 def early_warnings():
     """Return project early-warning indicators."""
     return generate_early_warnings()
+
+
+@app.get(
+    "/api/v1/tasks/{task_id}/risk-history",
+    response_model=RiskHistoryResponse,
+)
+def get_risk_history(task_id: str):
+    history = get_task_history(task_id)
+
+    if not history:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No risk history found for task {task_id}",
+        )
+
+    return {
+        "task_id": task_id,
+        "snapshots": history,
+    }
+
+
+@app.get(
+    "/api/v1/tasks/{task_id}/risk-trend",
+    response_model=RiskTrendResponse,
+)
+def get_risk_trend(task_id: str):
+    trend = calculate_risk_trend(task_id)
+
+    if trend["snapshot_count"] == 0:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No risk history found for task {task_id}",
+        )
+
+    return trend
