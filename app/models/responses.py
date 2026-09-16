@@ -119,3 +119,37 @@ class RiskTrendResponse(BaseModel):
     risk_velocity: float | None
     trend: str
     severity_transition: str | None
+class MonitoringEventResponse(BaseModel):
+    event_id: str
+    timestamp: str
+    source: str
+    component: str
+    event_type: str
+    severity: str
+    status: str
+    message: str
+    project_id: str | None = None
+    workstream_id: str | None = None
+
+
+class MonitoringAlertResponse(BaseModel):
+    alert_id: str
+    event_id: str
+    severity: str
+    status: str
+    detected_at: str
+    component: str
+    message: str
+    recommended_action: str
+    project_id: str | None = None
+    workstream_id: str | None = None
+
+
+class MonitoringSummaryResponse(BaseModel):
+    overall_status: str
+    total_events: int
+    active_alerts: int
+    critical_events: int
+    high_events: int
+    medium_events: int
+    affected_components: list[str]

@@ -1,0 +1,74 @@
+[
+  {
+    "event_id": "EVT-001",
+    "timestamp": "2026-09-16T09:15:00",
+    "source": "Integration",
+    "component": "Order Integration",
+    "event_type": "IntegrationFailure",
+    "severity": "High",
+    "status": "Open",
+    "message": "Repeated order integration failures detected.",
+    "project_id": "PRJ-001",
+    "workstream_id": "WS-INT"
+  },
+  {
+    "event_id": "EVT-002",
+    "timestamp": "2026-09-16T09:30:00",
+    "source": "Job",
+    "component": "Daily Synchronization Job",
+    "event_type": "JobFailure",
+    "severity": "Medium",
+    "status": "Open",
+    "message": "Scheduled synchronization job failed.",
+    "project_id": "PRJ-001",
+    "workstream_id": "WS-DATA"
+  },
+  {
+    "event_id": "EVT-003",
+    "timestamp": "2026-09-16T09:45:00",
+    "source": "Performance",
+    "component": "Order API",
+    "event_type": "ResponseTimeDegradation",
+    "severity": "High",
+    "status": "Open",
+    "message": "API response time exceeded operational threshold.",
+    "project_id": "PRJ-001",
+    "workstream_id": "WS-INT"
+  },
+  {
+    "event_id": "EVT-004",
+    "timestamp": "2026-09-16T10:00:00",
+    "source": "System",
+    "component": "Application Server",
+    "event_type": "ResourceWarning",
+    "severity": "Low",
+    "status": "Acknowledged",
+    "message": "Resource utilization approaching warning threshold.",
+    "project_id": "PRJ-001",
+    "workstream_id": "WS-CORE"
+  },
+  {
+    "event_id": "EVT-005",
+    "timestamp": "2026-09-16T10:15:00",
+    "source": "Integration",
+    "component": "Order Integration",
+    "event_type": "IntegrationFailure",
+    "severity": "Critical",
+    "status": "Open",
+    "message": "Critical integration failure affecting order processing.",
+    "project_id": "PRJ-001",
+    "workstream_id": "WS-INT"
+  },
+  {
+    "event_id": "EVT-006",
+    "timestamp": "2026-09-16T10:30:00",
+    "source": "Job",
+    "component": "Customer Sync Job",
+    "event_type": "JobDelay",
+    "severity": "Medium",
+    "status": "Resolved",
+    "message": "Customer synchronization job completed after delay.",
+    "project_id": "PRJ-001",
+    "workstream_id": "WS-DATA"
+  }
+]

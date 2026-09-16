@@ -2,7 +2,6 @@ from pathlib import Path
 import json
 
 from fastapi import FastAPI, HTTPException
-
 from app.models.responses import (
     HealthResponse,
     RiskSummaryResponse,
@@ -12,9 +11,19 @@ from app.models.responses import (
     EarlyWarningResponse,
     RiskHistoryResponse,
     RiskTrendResponse,
+    MonitoringEventResponse,
+    MonitoringAlertResponse,
+    MonitoringSummaryResponse,
+)
+from app.services.risk_engine import calculate_risk_score
+from app.services.historical_risk import get_task_history
+from app.services.risk_trend import calculate_risk_trend
+from app.services.monitoring_service import (
+    get_monitoring_events,
+    get_active_alerts,
+    get_monitoring_summary,
 )
 
-from app.services.risk_engine import calculate_risk_score
 from app.services.historical_risk import get_task_history
 from app.services.risk_trend import calculate_risk_trend
 
@@ -481,3 +490,31 @@ def get_risk_trend(task_id: str):
         )
 
     return trend
+@app.get(
+    "/monitoring/events",
+    response_model=list[MonitoringEventResponse],
+)
+def get_monitoring_events_api():
+    return [
+        event.model_dump(mode="json")
+        for event in get_monitoring_events()
+    ]
+
+
+@app.get(
+    "/monitoring/alerts",
+    response_model=list[MonitoringAlertResponse],
+)
+def get_monitoring_alerts_api():
+    return [
+        alert.model_dump(mode="json")
+        for alert in get_active_alerts()
+    ]
+
+
+@app.get(
+    "/monitoring/summary",
+    response_model=MonitoringSummaryResponse,
+)
+def get_monitoring_summary_api():
+    return get_monitoring_summary()
