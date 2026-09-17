@@ -108,6 +108,7 @@ _INTENT_RULES = [
         (
             "what should i do",
             "what should we do",
+            "what should we review first",
             "what needs attention",
             "next action",
             "recommendation",

@@ -272,16 +272,15 @@ for index, (label, value) in enumerate(metrics):
 
 st.write("")
 
-tabs = st.tabs(
-    [
-        "🎛️ Overview",
-        "💡 Intelligence",
-        "🔗 Correlations",
-        "🔍 Explainability",
-        "🎯 Recommendations",
-        "📋 Decision Brief",
-    ]
-)
+tabs = st.tabs([
+    "Overview",
+    "Intelligence",
+    "Correlations",
+    "Explainability",
+    "Recommendations",
+    "Decision Brief",
+    "🤖 Copilot",
+])
 
 # ------------------------------------------------------------------
 # Overview
@@ -863,3 +862,163 @@ st.caption(
     f"Backend: FastAPI • API: {API_BASE_URL} • "
     "Demo data is synthetic"
 )
+
+# ------------------------------------------------------------
+# Copilot
+# ------------------------------------------------------------
+
+with tabs[6]:
+    st.subheader("SAP Cloud ALM Copilot")
+    st.caption(
+        "Grounded operational assistance with conversation context, "
+        "entity resolution, evidence continuity, and governed actions."
+    )
+
+    if "copilot_conversation_id" not in st.session_state:
+        st.session_state.copilot_conversation_id = "streamlit-demo"
+
+    if "copilot_messages" not in st.session_state:
+        st.session_state.copilot_messages = []
+
+    if "copilot_question" not in st.session_state:
+        st.session_state.copilot_question = ""
+
+    col1, col2 = st.columns([4, 1])
+
+    with col1:
+        conversation_id = st.text_input(
+            "Conversation ID",
+            value=st.session_state.copilot_conversation_id,
+            key="copilot_conversation_id_input",
+        )
+
+    with col2:
+        st.write("")
+        if st.button("Reset", key="copilot_reset"):
+            st.session_state.copilot_messages = []
+            st.session_state.copilot_conversation_id = "streamlit-demo"
+            st.session_state.copilot_question = ""
+            st.rerun()
+
+    st.session_state.copilot_conversation_id = conversation_id
+
+    suggestions = [
+        "Why was the deployment rolled back?",
+        "What incident caused it?",
+        "What should we review first?",
+    ]
+
+    st.markdown("**Suggested questions**")
+
+    suggestion_cols = st.columns(3)
+
+    for index, suggestion in enumerate(suggestions):
+        with suggestion_cols[index]:
+            if st.button(
+                suggestion,
+                key=f"copilot_suggestion_{index}",
+                use_container_width=True,
+            ):
+                st.session_state.copilot_question = suggestion
+                st.rerun()
+
+    question = st.text_input(
+        "Ask Copilot",
+        placeholder=(
+            "Ask about delivery health, incidents, problems, "
+            "changes, releases, deployments, or recommendations..."
+        ),
+        key="copilot_question",
+    )
+
+    if st.button(
+        "Ask Copilot",
+        type="primary",
+        key="copilot_ask",
+        use_container_width=True,
+    ):
+        if not question.strip():
+            st.warning("Enter a question before asking Copilot.")
+        else:
+            try:
+                response = _local_client.post(
+                    "/copilot/query",
+                    json={
+                        "conversation_id": conversation_id,
+                        "question": question.strip(),
+                    },
+                )
+
+                response.raise_for_status()
+
+                st.session_state.copilot_messages.append(
+                    {
+                        "question": question.strip(),
+                        "response": response.json(),
+                    }
+                )
+
+            except Exception as exc:
+                st.error(f"Copilot request failed: {exc}")
+
+    if st.session_state.copilot_messages:
+        st.divider()
+        st.markdown("### Conversation")
+
+        for message in st.session_state.copilot_messages:
+            result = message["response"]
+
+            st.markdown(
+                f"**You:** {message['question']}"
+            )
+
+            st.markdown(
+                f"**Copilot:** "
+                f"{result.get('answer', 'No answer returned.')}"
+            )
+
+            c1, c2, c3 = st.columns(3)
+
+            with c1:
+                st.metric(
+                    "Intent",
+                    result.get("intent", "unknown"),
+                )
+
+            with c2:
+                st.metric(
+                    "Grounded",
+                    "Yes" if result.get("grounded") else "No",
+                )
+
+            with c3:
+                st.metric(
+                    "Approval",
+                    (
+                        "Required"
+                        if result.get("approval_required")
+                        else "Not required"
+                    ),
+                )
+
+            evidence = result.get("evidence", [])
+
+            if evidence:
+                with st.expander(
+                    f"Evidence ({len(evidence)})",
+                    expanded=True,
+                ):
+                    for item in evidence:
+                        st.write(f"• {item}")
+
+            trace = result.get("trace", [])
+
+            if trace:
+                with st.expander(
+                    "Execution Trace",
+                    expanded=False,
+                ):
+                    for item in trace:
+                        st.write(f"• {item}")
+
+            st.divider()

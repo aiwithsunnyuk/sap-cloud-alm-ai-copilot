@@ -59,3 +59,15 @@ def test_explanation_query_routes_to_explainability():
 
     assert result.intent == CopilotIntent.EXPLANATION
     assert result.suggested_endpoint == "/intelligence/explanations"
+
+
+def test_review_first_question_routes_to_recommendations():
+    result = classify_copilot_query(
+        CopilotQueryRequest(
+            question="What should we review first?"
+        )
+    )
+
+    assert result.intent == CopilotIntent.RECOMMENDATION
+    assert result.target_capability == "Operational Recommendations"
+    assert result.suggested_endpoint == "/intelligence/recommendations"
