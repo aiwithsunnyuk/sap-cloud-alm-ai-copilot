@@ -213,3 +213,39 @@ def test_copilot_response_preserves_prior_evidence():
     assert stored_evidence == second_evidence
 
     clear_context(conversation_id)
+
+
+def test_copilot_follow_up_returns_auditable_trace():
+    conversation_id = "api-test-trace"
+    clear_context(conversation_id)
+
+    first = client.post(
+        "/copilot/query",
+        json={
+            "conversation_id": conversation_id,
+            "question": "Why was the deployment rolled back?",
+        },
+    )
+
+    assert first.status_code == 200
+
+    second = client.post(
+        "/copilot/query",
+        json={
+            "conversation_id": conversation_id,
+            "question": "What incident caused it?",
+        },
+    )
+
+    assert second.status_code == 200
+
+    body = second.json()
+    trace = body["trace"]
+
+    assert "Conversation Context" in trace
+    assert "Previous Entity: deployment:DEP-001" in trace
+    assert "Resolved Entity: incident:INC-003" in trace
+    assert "Evidence Continuity" in trace
+    assert "Incident Service" in trace
+
+    clear_context(conversation_id)

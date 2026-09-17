@@ -777,6 +777,7 @@ from app.services.intelligence_decision_brief import generate_operational_decisi
 from app.models.copilot import CopilotQueryRequest
 from app.models.copilot import CopilotIntent
 from app.models.copilot_response import CopilotResponse
+from app.models.copilot_session import CopilotSessionSummary
 from app.models.copilot_context import CopilotContextTurn
 from app.services.copilot_context_service import (
     add_turn,
@@ -792,6 +793,7 @@ from app.services.copilot_entity_resolver import resolve_entity
 from app.services.incident_service import get_incident
 from app.services.deployment_service import get_deployment
 from app.services.copilot_response_service import generate_copilot_response
+from app.services.copilot_session_service import get_session_summary
 
 
 @app.get(
@@ -906,6 +908,40 @@ def copilot_query(request: CopilotQueryRequest) -> CopilotResponse:
     # Keep the public response anchored to the user's original question.
     response.question = request.question
 
+    # Add an auditable metadata trail for conversational execution.
+    trace = list(response.trace)
+
+    if "Conversation Context" not in trace:
+        trace.append("Conversation Context")
+
+    if previous_entity_context is not None:
+        previous_primary = previous_entity_context.primary
+
+        if previous_primary is not None:
+            previous_entry = (
+                f"Previous Entity: "
+                f"{previous_primary.entity_type}:"
+                f"{previous_primary.entity_id}"
+            )
+
+            if previous_entry not in trace:
+                trace.append(previous_entry)
+
+    if follow_up_entity is not None:
+        resolved_entry = (
+            f"Resolved Entity: "
+            f"{follow_up_entity.entity_type}:"
+            f"{follow_up_entity.entity_id}"
+        )
+
+        if resolved_entry not in trace:
+            trace.append(resolved_entry)
+
+    if "Evidence Continuity" not in trace:
+        trace.append("Evidence Continuity")
+
+    response.trace = trace
+
     # Preserve the established evidence trail across conversation turns.
     prior_evidence = get_conversation_evidence(
         request.conversation_id,
@@ -939,4 +975,14 @@ def copilot_query(request: CopilotQueryRequest) -> CopilotResponse:
     )
 
     return response
+
+@app.get(
+    "/copilot/context/{conversation_id}",
+    response_model=CopilotSessionSummary,
+)
+def get_copilot_context(
+    conversation_id: str,
+) -> CopilotSessionSummary:
+    """Return an auditable summary of the Copilot conversation context."""
+    return get_session_summary(conversation_id)
 
