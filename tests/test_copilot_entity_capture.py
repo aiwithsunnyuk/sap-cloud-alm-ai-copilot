@@ -47,3 +47,22 @@ def test_unknown_entity_is_not_captured():
     )
 
     assert context is None
+
+
+def test_capture_unique_rolled_back_deployment_without_id():
+    context = capture_entity_context(
+        question="Why was the deployment rolled back?",
+        answer=(
+            "Deployment status includes 1 rolled-back deployment(s) "
+            "and 1 failed validation(s)."
+        ),
+        evidence=[
+            "Rolled-back deployments: 1",
+            "Failed validations: 1",
+        ],
+    )
+
+    assert context is not None
+    assert context.primary is not None
+    assert context.primary.entity_type == "deployment"
+    assert context.primary.entity_id == "DEP-001"

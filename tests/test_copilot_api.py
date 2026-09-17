@@ -90,3 +90,39 @@ def test_copilot_query_preserves_conversation_context():
     assert body["answer"]
 
     clear_context(conversation_id)
+
+
+def test_copilot_follow_up_resolves_incident():
+    conversation_id = "api-test-follow-up"
+    clear_context(conversation_id)
+
+    first = client.post(
+        "/copilot/query",
+        json={
+            "conversation_id": conversation_id,
+            "question": "Why was the deployment rolled back?",
+        },
+    )
+
+    assert first.status_code == 200
+
+    second = client.post(
+        "/copilot/query",
+        json={
+            "conversation_id": conversation_id,
+            "question": "What incident caused it?",
+        },
+    )
+
+    assert second.status_code == 200
+
+    body = second.json()
+
+    assert body["question"] == "What incident caused it?"
+    assert body["intent"] == "incident"
+    assert body["grounded"] is True
+    assert "INC-003" in body["answer"]
+    assert "INC-003" in body["evidence"][0]
+    assert body["source_capability"] == "Incident Intelligence"
+
+    clear_context(conversation_id)

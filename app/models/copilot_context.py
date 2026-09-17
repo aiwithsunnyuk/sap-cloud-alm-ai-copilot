@@ -3,6 +3,8 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
+from app.models.copilot_entity_context import CopilotEntityContext
+
 
 class CopilotContextTurn(BaseModel):
     question: str
@@ -10,6 +12,7 @@ class CopilotContextTurn(BaseModel):
     answer: str
     source_capability: Optional[str] = None
     grounded: bool = False
+    entity_context: Optional[CopilotEntityContext] = None
     timestamp: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )

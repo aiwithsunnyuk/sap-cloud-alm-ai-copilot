@@ -3,6 +3,8 @@ from typing import List, Optional, Tuple
 
 from app.models.copilot_entity_context import CopilotEntityContext
 from app.services.copilot_entity_resolver import resolve_entity
+from app.services.deployment_service import get_deployments
+from app.models.deployments import DeploymentStatus
 
 
 _ENTITY_PATTERNS = (
@@ -26,18 +28,55 @@ def _collect_entity_ids(text: str) -> List[Tuple[str, str]]:
     return matches
 
 
+def _capture_implicit_deployment(
+    question: str,
+    answer: str,
+) -> Optional[CopilotEntityContext]:
+    combined = f"{question} {answer}".lower()
+
+    # The current operational scenario contains a single rolled-back
+    # deployment. Resolve it when the user is explicitly asking about
+    # a rollback/deployment failure without naming its ID.
+    rollback_terms = (
+        "rolled back",
+        "rollback",
+        "failed validation",
+        "deployment failure",
+    )
+
+    if "deployment" not in combined:
+        return None
+
+    if not any(term in combined for term in rollback_terms):
+        return None
+
+    rolled_back = [
+        deployment
+        for deployment in get_deployments()
+        if deployment.deployment_status
+        == DeploymentStatus.ROLLED_BACK
+    ]
+
+    if len(rolled_back) != 1:
+        return None
+
+    return resolve_entity(
+        "deployment",
+        rolled_back[0].deployment_id,
+    )
+
+
 def capture_entity_context(
     question: str,
     answer: str,
     evidence: object,
 ) -> Optional[CopilotEntityContext]:
     """
-    Capture the first concrete operational entity referenced by the
-    user's question or by the grounded Copilot response.
+    Capture a concrete operational entity from explicit identifiers.
 
-    Question matches take precedence because they represent explicit
-    user references. Response/evidence matches are used when the user
-    asks conceptually, such as "Why was the deployment rolled back?"
+    When a grounded response does not expose an identifier directly,
+    use a narrow deterministic inference for the current operational
+    scenario, such as a uniquely rolled-back deployment.
     """
     evidence_text = str(evidence)
 
@@ -65,4 +104,7 @@ def capture_entity_context(
         if context is not None and context.primary is not None:
             return context
 
-    return None
+    return _capture_implicit_deployment(
+        question,
+        answer,
+    )

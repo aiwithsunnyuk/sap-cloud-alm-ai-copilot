@@ -775,13 +775,19 @@ from app.services.intelligence_explanation import generate_operational_explanati
 from app.services.intelligence_recommendation import generate_operational_recommendations
 from app.services.intelligence_decision_brief import generate_operational_decision_brief
 from app.models.copilot import CopilotQueryRequest
+from app.models.copilot import CopilotIntent
 from app.models.copilot_response import CopilotResponse
 from app.models.copilot_context import CopilotContextTurn
 from app.services.copilot_context_service import (
     add_turn,
     contextualize_question,
 )
+from app.services.copilot_context_service import get_latest_entity_context
 from app.services.copilot_entity_capture import capture_entity_context
+from app.services.copilot_followup_resolver import resolve_follow_up_entity
+from app.services.copilot_entity_resolver import resolve_entity
+from app.services.incident_service import get_incident
+from app.services.deployment_service import get_deployment
 from app.services.copilot_response_service import generate_copilot_response
 
 
@@ -827,17 +833,72 @@ def get_operational_decision_brief_api():
 def copilot_query(request: CopilotQueryRequest) -> CopilotResponse:
     """Answer a natural-language Copilot question using grounded project intelligence."""
 
-    contextual_question = contextualize_question(
+    previous_entity_context = None
+    latest_context = contextualize_question(
         request.question,
         request.conversation_id,
     )
 
     contextual_request = CopilotQueryRequest(
-        question=contextual_question,
+        question=latest_context,
         conversation_id=request.conversation_id,
     )
 
-    response = generate_copilot_response(contextual_request)
+    # Resolve explicit follow-up references against the previous entity.
+    previous_entity_context = get_latest_entity_context(
+        request.conversation_id,
+    )
+
+    follow_up_entity = resolve_follow_up_entity(
+        request.question,
+        previous_entity_context,
+    )
+
+    if follow_up_entity is not None:
+        if follow_up_entity.entity_type == "incident":
+            incident = get_incident(follow_up_entity.entity_id)
+
+            if incident is not None:
+                response = CopilotResponse(
+                    question=request.question,
+                    intent=CopilotIntent.INCIDENT,
+                    confidence=1.0,
+                    answer=(
+                        f"{incident.incident_id}: "
+                        f"{incident.title}. "
+                        f"{incident.description}"
+                    ),
+                    evidence=[
+                        f"Incident: {incident.incident_id}",
+                        f"Severity: {incident.severity.value}",
+                        f"Priority: {incident.priority.value}",
+                        f"Status: {incident.status.value}",
+                    ],
+                    source_capability="Incident Intelligence",
+                    source_endpoint="/incidents/{incident_id}",
+                    trace=[
+                        "Conversation Context",
+                        "Follow-up Entity Resolver",
+                        "Incident Service",
+                    ],
+                    grounded=True,
+                    action_required=(
+                        incident.status.value != "Resolved"
+                    ),
+                    approval_required=False,
+                )
+            else:
+                response = generate_copilot_response(
+                    contextual_request
+                )
+        else:
+            response = generate_copilot_response(
+                contextual_request
+            )
+    else:
+        response = generate_copilot_response(
+            contextual_request
+        )
 
     # Keep the public response anchored to the user's original question.
     response.question = request.question
