@@ -1,5 +1,7 @@
 import re
 
+from app.services.copilot_capability_registry import get_capability
+
 from app.models.copilot import (
     CopilotIntent,
     CopilotQueryRequest,
@@ -152,6 +154,40 @@ def _normalize(question: str) -> str:
     return re.sub(r"\s+", " ", question)
 
 
+def _build_registered_route_response(
+    request: CopilotQueryRequest,
+    intent: CopilotIntent,
+) -> CopilotRouteResponse:
+    capability = get_capability(intent)
+
+    if capability is None:
+        return CopilotRouteResponse(
+            question=request.question,
+            intent=CopilotIntent.UNKNOWN,
+            confidence=0.0,
+            target_capability="No trusted capability identified",
+            explanation=(
+                "The matched intent has no registered "
+                "operational capability."
+            ),
+            suggested_endpoint=None,
+            evidence_required=True,
+        )
+
+    return CopilotRouteResponse(
+        question=request.question,
+        intent=intent,
+        confidence=0.9,
+        target_capability=capability.name,
+        explanation=(
+            f"Matched the query to the {capability.name} "
+            "capability using deterministic intent rules."
+        ),
+        suggested_endpoint=capability.endpoint,
+        evidence_required=True,
+    )
+
+
 def classify_copilot_query(
     request: CopilotQueryRequest,
 ) -> CopilotRouteResponse:
@@ -160,17 +196,7 @@ def classify_copilot_query(
     for intent, phrases, capability, endpoint in _INTENT_RULES:
         for phrase in phrases:
             if phrase in question:
-                return CopilotRouteResponse(
-                    question=request.question,
-                    intent=intent,
-                    confidence=0.90,
-                    target_capability=capability,
-                    explanation=(
-                        f"Matched the query to the {capability} "
-                        "capability using deterministic intent rules."
-                    ),
-                    suggested_endpoint=endpoint,
-                )
+                return _build_registered_route_response(request, intent)
 
     return CopilotRouteResponse(
         question=request.question,
