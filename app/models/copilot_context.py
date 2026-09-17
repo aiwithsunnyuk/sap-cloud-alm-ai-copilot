@@ -12,6 +12,7 @@ class CopilotContextTurn(BaseModel):
     answer: str
     source_capability: Optional[str] = None
     grounded: bool = False
+    evidence: List[str] = Field(default_factory=list)
     entity_context: Optional[CopilotEntityContext] = None
     timestamp: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)

@@ -104,3 +104,82 @@ def test_conversation_context_stores_entity_context():
     assert latest.primary.entity_id == "DEP-001"
 
     clear_context(conversation_id)
+
+
+def test_conversation_context_stores_evidence():
+    conversation_id = "test-evidence-context-001"
+    clear_context(conversation_id)
+
+    add_turn(
+        conversation_id,
+        CopilotContextTurn(
+            question="Why was the deployment rolled back?",
+            intent="deployment",
+            answer="Validation failed.",
+            evidence=[
+                "DEP-001",
+                "Validation: Failed",
+            ],
+            grounded=True,
+        ),
+    )
+
+    from app.services.copilot_context_service import get_conversation_evidence
+
+    evidence = get_conversation_evidence(
+        conversation_id
+    )
+
+    assert evidence == [
+        "DEP-001",
+        "Validation: Failed",
+    ]
+
+    clear_context(conversation_id)
+
+
+def test_conversation_evidence_is_deduplicated():
+    conversation_id = "test-evidence-context-002"
+    clear_context(conversation_id)
+
+    add_turn(
+        conversation_id,
+        CopilotContextTurn(
+            question="First question",
+            intent="deployment",
+            answer="First answer",
+            evidence=[
+                "DEP-001",
+                "Validation: Failed",
+            ],
+            grounded=True,
+        ),
+    )
+
+    add_turn(
+        conversation_id,
+        CopilotContextTurn(
+            question="Second question",
+            intent="incident",
+            answer="Second answer",
+            evidence=[
+                "INC-003",
+                "Validation: Failed",
+            ],
+            grounded=True,
+        ),
+    )
+
+    from app.services.copilot_context_service import get_conversation_evidence
+
+    evidence = get_conversation_evidence(
+        conversation_id
+    )
+
+    assert evidence == [
+        "DEP-001",
+        "Validation: Failed",
+        "INC-003",
+    ]
+
+    clear_context(conversation_id)

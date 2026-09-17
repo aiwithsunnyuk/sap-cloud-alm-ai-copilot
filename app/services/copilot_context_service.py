@@ -110,3 +110,21 @@ def add_entity_to_latest_turn(
     context.turns[-1].entity_context = entity_context
     return context.turns[-1]
 
+def get_conversation_evidence(
+    conversation_id: str,
+) -> list[str]:
+    """
+    Return unique evidence accumulated across the conversation,
+    preserving the order in which it was established.
+    """
+    context = get_or_create_context(conversation_id)
+
+    evidence: list[str] = []
+
+    for turn in context.turns:
+        for item in turn.evidence:
+            if item not in evidence:
+                evidence.append(item)
+
+    return evidence
+

@@ -122,7 +122,94 @@ def test_copilot_follow_up_resolves_incident():
     assert body["intent"] == "incident"
     assert body["grounded"] is True
     assert "INC-003" in body["answer"]
-    assert "INC-003" in body["evidence"][0]
+    assert any("INC-003" in item for item in body["evidence"])
     assert body["source_capability"] == "Incident Intelligence"
+
+    clear_context(conversation_id)
+
+
+def test_copilot_context_retains_evidence_across_turns():
+    from app.services.copilot_context_service import (
+        get_conversation_evidence,
+    )
+
+    conversation_id = "api-test-evidence-continuity"
+    clear_context(conversation_id)
+
+    first = client.post(
+        "/copilot/query",
+        json={
+            "conversation_id": conversation_id,
+            "question": "Why was the deployment rolled back?",
+        },
+    )
+
+    assert first.status_code == 200
+
+    second = client.post(
+        "/copilot/query",
+        json={
+            "conversation_id": conversation_id,
+            "question": "What incident caused it?",
+        },
+    )
+
+    assert second.status_code == 200
+
+    evidence = get_conversation_evidence(
+        conversation_id
+    )
+
+    assert evidence
+    assert any("INC-003" in item for item in evidence)
+
+    clear_context(conversation_id)
+
+
+def test_copilot_response_preserves_prior_evidence():
+    from app.services.copilot_context_service import (
+        get_conversation_evidence,
+    )
+
+    conversation_id = "api-test-evidence-response"
+    clear_context(conversation_id)
+
+    first = client.post(
+        "/copilot/query",
+        json={
+            "conversation_id": conversation_id,
+            "question": "Why was the deployment rolled back?",
+        },
+    )
+
+    assert first.status_code == 200
+
+    first_body = first.json()
+    first_evidence = first_body["evidence"]
+
+    assert first_evidence
+    assert "Failed validations: 1" in first_evidence
+
+    second = client.post(
+        "/copilot/query",
+        json={
+            "conversation_id": conversation_id,
+            "question": "What incident caused it?",
+        },
+    )
+
+    assert second.status_code == 200
+
+    second_body = second.json()
+    second_evidence = second_body["evidence"]
+
+    assert "Failed validations: 1" in second_evidence
+    assert any("INC-003" in item for item in second_evidence)
+
+    stored_evidence = get_conversation_evidence(
+        conversation_id,
+    )
+
+    assert stored_evidence == second_evidence
 
     clear_context(conversation_id)

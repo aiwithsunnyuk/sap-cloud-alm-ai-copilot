@@ -782,7 +782,10 @@ from app.services.copilot_context_service import (
     add_turn,
     contextualize_question,
 )
-from app.services.copilot_context_service import get_latest_entity_context
+from app.services.copilot_context_service import (
+    get_latest_entity_context,
+    get_conversation_evidence,
+)
 from app.services.copilot_entity_capture import capture_entity_context
 from app.services.copilot_followup_resolver import resolve_follow_up_entity
 from app.services.copilot_entity_resolver import resolve_entity
@@ -903,6 +906,19 @@ def copilot_query(request: CopilotQueryRequest) -> CopilotResponse:
     # Keep the public response anchored to the user's original question.
     response.question = request.question
 
+    # Preserve the established evidence trail across conversation turns.
+    prior_evidence = get_conversation_evidence(
+        request.conversation_id,
+    )
+
+    cumulative_evidence = list(prior_evidence)
+
+    for item in response.evidence:
+        if item not in cumulative_evidence:
+            cumulative_evidence.append(item)
+
+    response.evidence = cumulative_evidence
+
     entity_context = capture_entity_context(
         question=request.question,
         answer=response.answer,
@@ -917,6 +933,7 @@ def copilot_query(request: CopilotQueryRequest) -> CopilotResponse:
             answer=response.answer,
             source_capability=response.source_capability,
             grounded=response.grounded,
+            evidence=response.evidence,
             entity_context=entity_context,
         ),
     )
