@@ -781,6 +781,7 @@ from app.services.copilot_context_service import (
     add_turn,
     contextualize_question,
 )
+from app.services.copilot_entity_capture import capture_entity_context
 from app.services.copilot_response_service import generate_copilot_response
 
 
@@ -841,6 +842,12 @@ def copilot_query(request: CopilotQueryRequest) -> CopilotResponse:
     # Keep the public response anchored to the user's original question.
     response.question = request.question
 
+    entity_context = capture_entity_context(
+        question=request.question,
+        answer=response.answer,
+        evidence=response.evidence,
+    )
+
     add_turn(
         request.conversation_id,
         CopilotContextTurn(
@@ -849,6 +856,7 @@ def copilot_query(request: CopilotQueryRequest) -> CopilotResponse:
             answer=response.answer,
             source_capability=response.source_capability,
             grounded=response.grounded,
+            entity_context=entity_context,
         ),
     )
 

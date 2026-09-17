@@ -1,5 +1,6 @@
 from typing import Dict, Optional
 
+from app.models.copilot_entity_context import CopilotEntityContext
 from app.models.copilot_context import (
     CopilotContextTurn,
     CopilotConversationContext,
@@ -85,3 +86,27 @@ def contextualize_question(
         )
 
     return question
+
+def get_latest_entity_context(
+    conversation_id: str,
+) -> Optional[CopilotEntityContext]:
+    latest = get_latest_turn(conversation_id)
+
+    if latest is None:
+        return None
+
+    return latest.entity_context
+
+
+def add_entity_to_latest_turn(
+    conversation_id: str,
+    entity_context: CopilotEntityContext,
+) -> Optional[CopilotContextTurn]:
+    context = get_or_create_context(conversation_id)
+
+    if not context.turns:
+        return None
+
+    context.turns[-1].entity_context = entity_context
+    return context.turns[-1]
+

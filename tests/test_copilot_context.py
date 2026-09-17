@@ -56,3 +56,51 @@ def test_contextualize_follow_up():
     assert "Validation failed" in enriched
 
     clear_context(conversation_id)
+
+
+def test_conversation_context_stores_entity_context():
+    from app.models.copilot_entity_context import (
+        CopilotEntityContext,
+        CopilotEntityReference,
+    )
+    from app.services.copilot_context_service import (
+        add_entity_to_latest_turn,
+        get_latest_entity_context,
+    )
+
+    conversation_id = "test-entity-context-001"
+    clear_context(conversation_id)
+
+    add_turn(
+        conversation_id,
+        CopilotContextTurn(
+            question="Why was the deployment rolled back?",
+            intent="deployment",
+            answer="Validation failed.",
+            grounded=True,
+        ),
+    )
+
+    entity_context = CopilotEntityContext(
+        primary=CopilotEntityReference(
+            entity_type="deployment",
+            entity_id="DEP-001",
+            display_name="DEP-001",
+        ),
+    )
+
+    add_entity_to_latest_turn(
+        conversation_id,
+        entity_context,
+    )
+
+    latest = get_latest_entity_context(
+        conversation_id,
+    )
+
+    assert latest is not None
+    assert latest.primary is not None
+    assert latest.primary.entity_type == "deployment"
+    assert latest.primary.entity_id == "DEP-001"
+
+    clear_context(conversation_id)
