@@ -776,6 +776,11 @@ from app.services.intelligence_recommendation import generate_operational_recomm
 from app.services.intelligence_decision_brief import generate_operational_decision_brief
 from app.models.copilot import CopilotQueryRequest
 from app.models.copilot_response import CopilotResponse
+from app.models.copilot_context import CopilotContextTurn
+from app.services.copilot_context_service import (
+    add_turn,
+    contextualize_question,
+)
 from app.services.copilot_response_service import generate_copilot_response
 
 
@@ -820,5 +825,32 @@ def get_operational_decision_brief_api():
 @app.post("/copilot/query", response_model=CopilotResponse)
 def copilot_query(request: CopilotQueryRequest) -> CopilotResponse:
     """Answer a natural-language Copilot question using grounded project intelligence."""
-    return generate_copilot_response(request)
+
+    contextual_question = contextualize_question(
+        request.question,
+        request.conversation_id,
+    )
+
+    contextual_request = CopilotQueryRequest(
+        question=contextual_question,
+        conversation_id=request.conversation_id,
+    )
+
+    response = generate_copilot_response(contextual_request)
+
+    # Keep the public response anchored to the user's original question.
+    response.question = request.question
+
+    add_turn(
+        request.conversation_id,
+        CopilotContextTurn(
+            question=request.question,
+            intent=response.intent.value,
+            answer=response.answer,
+            source_capability=response.source_capability,
+            grounded=response.grounded,
+        ),
+    )
+
+    return response
 

@@ -6,6 +6,10 @@ from typing import Any
 from app.models.copilot import CopilotIntent, CopilotQueryRequest
 from app.models.copilot_response import CopilotResponse
 from app.services.copilot_router import classify_copilot_query
+from app.services.copilot_context_service import (
+    add_turn,
+    contextualize_question,
+)
 from app.services.deployment_service import get_deployment_summary
 from app.services.incident_service import get_incident_summary
 from app.services.intelligence_correlation import generate_operational_correlations
@@ -385,7 +389,30 @@ def _decision_brief_response() -> tuple[str, list[str], list[str], bool]:
 def generate_copilot_response(
     request: CopilotQueryRequest,
 ) -> CopilotResponse:
-    route = classify_copilot_query(request)
+    contextual_question = contextualize_question(
+        request.question,
+        request.conversation_id,
+    )
+
+    routed_request = CopilotQueryRequest(
+        question=contextual_question,
+        conversation_id=request.conversation_id,
+    )
+
+    route = classify_copilot_query(routed_request)
+
+    def _finalize(response: CopilotResponse) -> CopilotResponse:
+        add_turn(
+            request.conversation_id,
+            CopilotContextTurn(
+                question=request.question,
+                intent=response.intent.value,
+                answer=response.answer,
+                source_capability=response.source_capability,
+                grounded=response.grounded,
+            ),
+        )
+        return response
 
     if route.intent == CopilotIntent.UNKNOWN:
         return CopilotResponse(

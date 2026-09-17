@@ -20,6 +20,7 @@ class CopilotIntent(str, Enum):
 
 class CopilotQueryRequest(BaseModel):
     question: str = Field(min_length=3)
+    conversation_id: str = "default"
 
 
 class CopilotRouteResponse(BaseModel):
