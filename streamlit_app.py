@@ -293,6 +293,7 @@ tabs = st.tabs([
     "Decision Brief",
     "🤖 Copilot",
     "🧭 Decisions",
+    "🔐 Governance",
 ])
 
 # ------------------------------------------------------------------
