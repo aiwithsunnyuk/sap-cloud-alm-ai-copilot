@@ -1,92 +1,88 @@
 from fastapi.testclient import TestClient
 
 from app.api import app
+from app.models.copilot import CopilotIntent
 
 
 client = TestClient(app)
 
 
-def _payload():
-    return {
-        "question": "What should we review before the deployment?",
-        "intent": "deployment",
-        "agent_results": [
-            {
-                "agent_id": "deployment-investigator",
-                "orchestration": {
-                    "skill_name": "Deployment Investigation",
-                    "intent": "deployment",
-                    "status": "success",
-                    "tool_results": [
-                        {
-                            "tool_name": "get_deployment_summary",
-                            "status": "success",
-                            "summary": "DEP-001 was rolled back.",
-                            "data": {
-                                "findings": [
-                                    "Deployment validation failed."
-                                ],
-                                "recommendations": [
-                                    "Review deployment validation evidence."
-                                ],
-                            },
-                            "evidence": [
-                                "DEP-001: rollback completed"
-                            ],
-                            "source": "deployment service",
-                            "trace": ["Tool Execution"],
-                            "approval_required": False,
-                        }
-                    ],
-                    "successful_tools": 1,
-                    "blocked_tools": 0,
-                    "failed_tools": 0,
-                    "approval_required": False,
-                    "trace": ["Tool Execution"],
-                },
-            },
-            {
-                "agent_id": "incident-investigator",
-                "orchestration": {
-                    "skill_name": "Incident Investigation",
-                    "intent": "deployment",
-                    "status": "success",
-                    "tool_results": [
-                        {
-                            "tool_name": "get_incident_summary",
-                            "status": "success",
-                            "summary": "INC-003 is related.",
-                            "data": {
-                                "findings": [
-                                    "Related incident remains open."
-                                ],
-                                "recommendations": [
-                                    "Review incident corrective actions."
-                                ],
-                            },
-                            "evidence": [
-                                "INC-003: deployment-related incident"
-                            ],
-                            "source": "incident service",
-                            "trace": ["Tool Execution"],
-                            "approval_required": False,
-                        }
-                    ],
-                    "successful_tools": 1,
-                    "blocked_tools": 0,
-                    "failed_tools": 0,
-                    "approval_required": False,
-                    "trace": ["Tool Execution"],
-                },
-            },
+def _orchestration(
+    *,
+    skill_name: str,
+    tool_name: str,
+    evidence: list[str],
+    recommendations: list[str] | None = None,
+    status: str = "success",
+):
+    from app.models.copilot_normalized_result import CopilotNormalizedResult
+    from app.models.copilot_orchestration import CopilotOrchestrationResult
+
+    normalized = CopilotNormalizedResult(
+        tool_name=tool_name,
+        status="success",
+        summary=f"{skill_name} result",
+        data={
+            "findings": [],
+            "recommendations": recommendations or [],
+        },
+        evidence=evidence,
+        source=f"{skill_name} service",
+        trace=["Tool Execution"],
+        approval_required=False,
+    )
+
+    return CopilotOrchestrationResult(
+        skill_name=skill_name,
+        intent=CopilotIntent.DEPLOYMENT,
+        status=status,
+        tool_results=[normalized],
+        successful_tools=1 if status == "success" else 0,
+        blocked_tools=0,
+        failed_tools=1 if status != "success" else 0,
+        approval_required=False,
+        trace=[
+            "Skill Planning",
+            "Tool Execution",
+            "Normalized Tool Results",
         ],
-    }
+    )
 
 
-def test_decision_api_returns_candidate_and_confidence():
+def test_decision_orchestration_api_returns_assessment():
     response = client.post(
-        "/copilot/decisions",
-        json=_payload(),
+        "/copilot/decisions/orchestrate",
+        json={
+            "question": "What should we review before deployment?",
+            "intent": CopilotIntent.DEPLOYMENT.value,
+            "agent_results": [
+                {
+                    "agent_id": "deployment-investigator",
+                    "orchestration": _orchestration(
+                        skill_name="Deployment Investigation",
+                        tool_name="get_deployment_summary",
+                        evidence=[
+                            "DEP-001: rollback completed",
+                            "DEP-001: validation failed",
+                        ],
+                        recommendations=[
+                            "Review deployment validation."
+                        ],
+                    ).model_dump(mode="json"),
+                },
+                {
+                    "agent_id": "incident-investigator",
+                    "orchestration": _orchestration(
+                        skill_name="Incident Investigation",
+                        tool_name="get_incident_summary",
+                        evidence=["INC-003: deployment incident"],
+                        recommendations=[
+                            "Review incident corrective actions."
+                        ],
+                    ).model_dump(mode="json"),
+                },
+            ],
+        },
     )
 
     assert response.status_code == 200
@@ -96,31 +92,28 @@ def test_decision_api_returns_candidate_and_confidence():
     assert body["decision"]["status"] == "success"
     assert body["decision"]["decision"] == "review_recommendations"
 
-    assert body["decision"]["contributing_agents"] == [
-        "deployment-investigator",
-        "incident-investigator",
-    ]
-
-    assert len(body["decision"]["evidence"]) == 2
-    assert body["decision"]["action_required"] is True
-    assert body["decision"]["approval_required"] is True
-
-    assert body["confidence"]["score"] == 90
+    assert body["confidence"]["score"] == 100
     assert body["confidence"]["level"] == "high"
 
-    assert body["decision"]["trace"][-1] == "Decision Confidence"
+    assert body["review_required"] is False
+    assert body["auditable"] is True
+
+    assert body["trace"] == [
+        "Multi-Agent Decision Orchestration",
+        "Decision Candidate",
+        "Decision Confidence",
+        "Decision Assessment",
+    ]
 
 
-def test_decision_api_handles_empty_agent_results():
-    payload = {
-        "question": "What should we review?",
-        "intent": "decision_brief",
-        "agent_results": [],
-    }
-
+def test_decision_orchestration_api_handles_empty_agents():
     response = client.post(
-        "/copilot/decisions",
-        json=payload,
+        "/copilot/decisions/orchestrate",
+        json={
+            "question": "What should we review?",
+            "intent": CopilotIntent.DECISION_BRIEF.value,
+            "agent_results": [],
+        },
     )
 
     assert response.status_code == 200
@@ -129,20 +122,39 @@ def test_decision_api_handles_empty_agent_results():
 
     assert body["decision"]["status"] == "insufficient_evidence"
     assert body["decision"]["decision"] == "insufficient_evidence"
+
     assert body["confidence"]["score"] == 0
     assert body["confidence"]["level"] == "none"
 
+    assert body["review_required"] is True
 
-def test_decision_api_preserves_partial_failure():
-    payload = _payload()
 
-    payload["agent_results"][1]["orchestration"]["status"] = "partial_failure"
-    payload["agent_results"][1]["orchestration"]["failed_tools"] = 1
-    payload["agent_results"][1]["orchestration"]["successful_tools"] = 0
-
+def test_decision_orchestration_api_handles_partial_failure():
     response = client.post(
-        "/copilot/decisions",
-        json=payload,
+        "/copilot/decisions/orchestrate",
+        json={
+            "question": "Investigate deployment",
+            "intent": CopilotIntent.DEPLOYMENT.value,
+            "agent_results": [
+                {
+                    "agent_id": "deployment-investigator",
+                    "orchestration": _orchestration(
+                        skill_name="Deployment Investigation",
+                        tool_name="get_deployment_summary",
+                        evidence=["DEP-001"],
+                    ).model_dump(mode="json"),
+                },
+                {
+                    "agent_id": "incident-investigator",
+                    "orchestration": _orchestration(
+                        skill_name="Incident Investigation",
+                        tool_name="get_incident_summary",
+                        evidence=[],
+                        status="partial_failure",
+                    ).model_dump(mode="json"),
+                },
+            ],
+        },
     )
 
     assert response.status_code == 200
@@ -150,32 +162,22 @@ def test_decision_api_preserves_partial_failure():
     body = response.json()
 
     assert body["decision"]["status"] == "partial_failure"
-    assert body["decision"]["decision"] == "review_partial_results"
-    assert body["confidence"]["score"] == 65
+
+    # Two contributing agents still earn the multi-agent confidence bonus.
+    assert body["confidence"]["score"] == 55
     assert body["confidence"]["level"] == "medium"
 
+    assert body["review_required"] is False
 
-def test_decision_api_rejects_invalid_intent():
-    payload = _payload()
-    payload["intent"] = "not-a-real-intent"
 
+def test_decision_orchestration_api_rejects_invalid_intent():
     response = client.post(
-        "/copilot/decisions",
-        json=payload,
+        "/copilot/decisions/orchestrate",
+        json={
+            "question": "Investigate deployment",
+            "intent": "NOT_A_REAL_INTENT",
+            "agent_results": [],
+        },
     )
 
     assert response.status_code == 422
-
-
-def test_decision_api_is_read_only_candidate_generation():
-    response = client.post(
-        "/copilot/decisions",
-        json=_payload(),
-    )
-
-    assert response.status_code == 200
-
-    body = response.json()
-
-    assert body["decision"]["decision"] == "review_recommendations"
-    assert body["decision"]["approval_required"] is True

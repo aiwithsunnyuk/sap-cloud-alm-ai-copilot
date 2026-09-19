@@ -848,6 +848,10 @@ from app.services.copilot_decision_orchestration import (
     orchestrate_decision_with_confidence,
 )
 
+from app.models.copilot_decision_assessment import CopilotDecisionAssessment
+from app.models.copilot_multi_agent import CopilotMultiAgentDecisionRequest
+from app.services.copilot_decision_assessment import assess_multi_agent_decision
+
 @app.post("/copilot/query", response_model=CopilotResponse)
 def copilot_query(request: CopilotQueryRequest) -> CopilotResponse:
     """Answer a natural-language Copilot question using grounded project intelligence."""
@@ -1010,6 +1014,17 @@ def evaluate_copilot_agent(
 ) -> CopilotAgentEvaluation:
     """Evaluate an agent execution for governance, grounding, execution and trace quality."""
     return evaluate_agent_execution(request)
+
+
+@app.post(
+    "/copilot/decisions/orchestrate",
+    response_model=CopilotDecisionAssessment,
+)
+def orchestrate_copilot_decision(
+    request: CopilotMultiAgentDecisionRequest,
+) -> CopilotDecisionAssessment:
+    """Build a deterministic multi-agent decision assessment."""
+    return assess_multi_agent_decision(request)
 
 
 @app.get(
