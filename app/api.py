@@ -840,6 +840,14 @@ from app.models.copilot_agent_evaluation import (
 )
 from app.services.copilot_agent_evaluation import evaluate_agent_execution
 
+from app.models.copilot_decision_response import (
+    CopilotDecisionOrchestrationResponse,
+)
+from app.models.copilot_multi_agent import CopilotMultiAgentDecisionRequest
+from app.services.copilot_decision_orchestration import (
+    orchestrate_decision_with_confidence,
+)
+
 @app.post("/copilot/query", response_model=CopilotResponse)
 def copilot_query(request: CopilotQueryRequest) -> CopilotResponse:
     """Answer a natural-language Copilot question using grounded project intelligence."""
@@ -981,6 +989,17 @@ def copilot_query(request: CopilotQueryRequest) -> CopilotResponse:
     )
 
     return response
+
+@app.post(
+    "/copilot/decisions",
+    response_model=CopilotDecisionOrchestrationResponse,
+)
+def copilot_decision(
+    request: CopilotMultiAgentDecisionRequest,
+) -> CopilotDecisionOrchestrationResponse:
+    """Build a read-only multi-agent decision candidate with support confidence."""
+    return orchestrate_decision_with_confidence(request)
+
 
 @app.post(
     "/copilot/agents/evaluate",
