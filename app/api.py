@@ -834,6 +834,12 @@ def get_operational_decision_brief_api():
     """Get the consolidated operational decision brief."""
     return generate_operational_decision_brief()
 
+from app.models.copilot_agent_evaluation import (
+    CopilotAgentEvaluation,
+    CopilotAgentEvaluationRequest,
+)
+from app.services.copilot_agent_evaluation import evaluate_agent_execution
+
 @app.post("/copilot/query", response_model=CopilotResponse)
 def copilot_query(request: CopilotQueryRequest) -> CopilotResponse:
     """Answer a natural-language Copilot question using grounded project intelligence."""
@@ -975,6 +981,17 @@ def copilot_query(request: CopilotQueryRequest) -> CopilotResponse:
     )
 
     return response
+
+@app.post(
+    "/copilot/agents/evaluate",
+    response_model=CopilotAgentEvaluation,
+)
+def evaluate_copilot_agent(
+    request: CopilotAgentEvaluationRequest,
+) -> CopilotAgentEvaluation:
+    """Evaluate an agent execution for governance, grounding, execution and trace quality."""
+    return evaluate_agent_execution(request)
+
 
 @app.get(
     "/copilot/context/{conversation_id}",
