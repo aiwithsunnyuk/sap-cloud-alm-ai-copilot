@@ -1093,6 +1093,247 @@ with tabs[7]:
         )
 
 
+# M15 Human Approval Governance
+with tabs[8]:
+    st.subheader("Human Approval Governance")
+    st.caption(
+        "Decision → Human Approval → Audit Trail"
+    )
+
+    st.warning(
+        "No operational action is executed by this cockpit. "
+        "Approval only changes governance eligibility."
+    )
+
+    assessment = st.session_state.get("m14_decision_assessment")
+
+    if not assessment:
+        st.info(
+            "Build a Decision Assessment in the 🧭 Decisions tab first."
+        )
+    else:
+        decision = assessment.get("decision", {})
+        confidence = assessment.get("confidence", {})
+
+        st.markdown("### Decision Under Review")
+
+        a1, a2, a3 = st.columns(3)
+
+        with a1:
+            st.metric(
+                "Decision Status",
+                decision.get("status", "unknown").upper(),
+            )
+
+        with a2:
+            st.metric(
+                "Confidence",
+                (
+                    f"{confidence.get('score', 0)} · "
+                    f"{confidence.get('level', 'none').upper()}"
+                ),
+            )
+
+        with a3:
+            st.metric(
+                "Action Required",
+                "Yes"
+                if decision.get("action_required", False)
+                else "No",
+            )
+
+        st.markdown("### Human Review")
+
+        reviewer = st.text_input(
+            "Reviewer",
+            value="human-reviewer",
+            key="m15_reviewer",
+        )
+
+        approval_decision = st.radio(
+            "Approval decision",
+            [
+                "Pending",
+                "Approved",
+                "Rejected",
+            ],
+            horizontal=True,
+            key="m15_approval_decision",
+        )
+
+        approval_comment = st.text_area(
+            "Approval comment",
+            value="",
+            placeholder=(
+                "Record the rationale for the human decision."
+            ),
+            key="m15_approval_comment",
+        )
+
+        if st.button(
+            "Submit Governance Decision",
+            type="primary",
+            use_container_width=True,
+            key="m15_submit_approval",
+        ):
+            try:
+                decision_id = st.text_input(
+                    "Decision ID",
+                    value="DEC-STREAMLIT-001",
+                    key="m15_decision_id",
+                )
+
+                payload = {
+                    "assessment": assessment,
+                    "approver": (
+                        None
+                        if approval_decision == "Pending"
+                        else reviewer.strip()
+                    ),
+                    "approval_comment": (
+                        None
+                        if approval_decision == "Pending"
+                        else (
+                            f"{approval_decision}: "
+                            f"{approval_comment.strip()}"
+                        )
+                    ),
+                }
+
+                with st.spinner("Evaluating governance decision..."):
+                    result = api_post(
+                        f"/copilot/decisions/{decision_id}/approval",
+                        payload,
+                    )
+
+                st.session_state["m15_approval_result"] = result
+
+            except Exception as exc:
+                st.error(
+                    f"Governance decision failed: {exc}"
+                )
+
+        approval_result = st.session_state.get(
+            "m15_approval_result"
+        )
+
+        if approval_result:
+            st.divider()
+
+            approval = approval_result.get("approval", {})
+            audit = approval_result.get("audit_record", {})
+
+            g1, g2, g3 = st.columns(3)
+
+            with g1:
+                status = approval.get("status", "unknown")
+
+                if status == "approved":
+                    st.success("APPROVED")
+                elif status == "rejected":
+                    st.error("REJECTED")
+                else:
+                    st.warning("PENDING")
+
+            with g2:
+                st.metric(
+                    "Allowed to Proceed",
+                    "Yes"
+                    if approval.get("allowed_to_proceed", False)
+                    else "No",
+                )
+
+            with g3:
+                st.metric(
+                    "Approval Required",
+                    "Yes"
+                    if approval.get("approval_required", False)
+                    else "No",
+                )
+
+            st.markdown("### Governance Rationale")
+            st.write(
+                approval.get(
+                    "rationale",
+                    "No rationale available.",
+                )
+            )
+
+            st.markdown("### Approval Audit Record")
+
+            st.write(
+                f"**Audit ID:** `{audit.get('audit_id', 'N/A')}`"
+            )
+            st.write(
+                f"**Decision ID:** `{audit.get('decision_id', 'N/A')}`"
+            )
+            st.write(
+                f"**Status:** `{audit.get('status', 'N/A')}`"
+            )
+
+            if audit.get("approver"):
+                st.write(
+                    f"**Approver:** {audit['approver']}"
+                )
+
+            if audit.get("approval_comment"):
+                st.write(
+                    f"**Comment:** {audit['approval_comment']}"
+                )
+
+            st.write(
+                f"**Allowed to Proceed:** "
+                f"{'Yes' if audit.get('allowed_to_proceed') else 'No'}"
+            )
+
+            st.markdown("### Governance Trace")
+
+            for step in approval_result.get("trace", []):
+                st.write(f"✓ {step}")
+
+        try:
+            audit_summary = api_get(
+                "/copilot/approvals/audit/summary"
+            )
+
+            st.divider()
+            st.markdown("### Approval Audit Summary")
+
+            s1, s2, s3, s4 = st.columns(4)
+
+            with s1:
+                st.metric(
+                    "Total",
+                    audit_summary.get("total_records", 0),
+                )
+
+            with s2:
+                st.metric(
+                    "Pending",
+                    audit_summary.get("pending", 0),
+                )
+
+            with s3:
+                st.metric(
+                    "Approved",
+                    audit_summary.get("approved", 0),
+                )
+
+            with s4:
+                st.metric(
+                    "Rejected",
+                    audit_summary.get("rejected", 0),
+                )
+
+        except Exception:
+            pass
+
+        st.caption(
+            "M15 · Human Approval & Governance · "
+            "Synthetic demo data · No autonomous execution"
+        )
+
+
 # Copilot
 # ------------------------------------------------------------
 
