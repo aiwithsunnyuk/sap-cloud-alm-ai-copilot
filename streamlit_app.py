@@ -31,6 +31,18 @@ def api_get(path: str):
     return response.json()
 
 
+def api_post(path: str, payload: dict):
+    if API_BASE_URL:
+        url = f"{API_BASE_URL}{path}"
+        response = requests.post(url, json=payload, timeout=30)
+        response.raise_for_status()
+        return response.json()
+
+    response = _local_client.post(path, json=payload)
+    response.raise_for_status()
+    return response.json()
+
+
 def health_color(health: str) -> str:
     return {
         "Green": "🟢",
@@ -280,6 +292,7 @@ tabs = st.tabs([
     "Recommendations",
     "Decision Brief",
     "🤖 Copilot",
+    "🧭 Decisions",
 ])
 
 # ------------------------------------------------------------------
@@ -864,6 +877,222 @@ st.caption(
 )
 
 # ------------------------------------------------------------
+# M14 Decision Orchestration
+with tabs[7]:
+    st.subheader("Decision Orchestration")
+    st.caption(
+        "Multi-agent decision assessment · Evidence · Confidence · Review signal"
+    )
+
+    st.info(
+        "Decision assessment only. No operational action is executed."
+    )
+
+    question = st.text_input(
+        "Decision question",
+        value="What should we review before proceeding with the deployment?",
+        key="decision_question",
+    )
+
+    st.markdown("### Participating Agents")
+
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        st.metric("Deployment", "Investigator")
+
+    with c2:
+        st.metric("Incident", "Investigator")
+
+    with c3:
+        st.metric("Release", "Governance")
+
+    if st.button(
+        "Build Decision Assessment",
+        type="primary",
+        use_container_width=True,
+        key="decision_assessment_run",
+    ):
+        try:
+            from app.models.copilot import CopilotIntent
+            from app.services.copilot_orchestrator import orchestrate_skill
+
+            with st.spinner("Running multi-agent decision assessment..."):
+                deployment_result = orchestrate_skill(
+                    CopilotIntent.DEPLOYMENT,
+                    entity_type="deployment",
+                    entity_id="DEP-001",
+                )
+
+                incident_result = orchestrate_skill(
+                    CopilotIntent.INCIDENT,
+                    entity_type="incident",
+                    entity_id="INC-003",
+                )
+
+                release_result = orchestrate_skill(
+                    CopilotIntent.RELEASE,
+                    entity_type="release",
+                    entity_id="REL-001",
+                )
+
+                payload = {
+                    "question": question.strip(),
+                    "intent": CopilotIntent.DEPLOYMENT.value,
+                    "agent_results": [
+                        {
+                            "agent_id": "deployment-investigator",
+                            "orchestration": deployment_result.model_dump(
+                                mode="json"
+                            ),
+                        },
+                        {
+                            "agent_id": "incident-investigator",
+                            "orchestration": incident_result.model_dump(
+                                mode="json"
+                            ),
+                        },
+                        {
+                            "agent_id": "release-governance",
+                            "orchestration": release_result.model_dump(
+                                mode="json"
+                            ),
+                        },
+                    ],
+                }
+
+                assessment = api_post(
+                    "/copilot/decisions/orchestrate",
+                    payload,
+                )
+
+                st.session_state["decision_assessment"] = assessment
+
+        except Exception as exc:
+            st.error(f"Decision assessment failed: {exc}")
+
+    assessment = st.session_state.get("decision_assessment")
+
+    if assessment:
+        decision = assessment.get("decision", {})
+        confidence = assessment.get("confidence", {})
+
+        st.divider()
+        st.markdown("### Decision Assessment")
+
+        c1, c2, c3 = st.columns(3)
+
+        with c1:
+            st.metric(
+                "Decision",
+                decision.get(
+                    "decision",
+                    "N/A",
+                ).replace("_", " ").title(),
+            )
+
+        with c2:
+            st.metric(
+                "Support Confidence",
+                (
+                    f"{confidence.get('score', 0)} · "
+                    f"{confidence.get('level', 'none').upper()}"
+                ),
+            )
+
+        with c3:
+            review_required = assessment.get(
+                "review_required",
+                False,
+            )
+
+            st.metric(
+                "Review Required",
+                "Yes" if review_required else "No",
+            )
+
+        status = decision.get("status", "unknown")
+
+        if status == "success":
+            st.success(
+                "Decision candidate generated successfully. "
+                + confidence.get("rationale", "")
+            )
+
+        elif status == "partial_failure":
+            st.warning(
+                "Decision candidate contains partial results. "
+                + confidence.get("rationale", "")
+            )
+
+        elif status == "blocked":
+            st.error(
+                "Decision is blocked because one or more "
+                "agent contributions are blocked."
+            )
+
+        else:
+            st.warning(
+                "Insufficient evidence exists to support "
+                "a decision candidate."
+            )
+
+        st.markdown("### Contributing Agents")
+
+        agents = decision.get("contributing_agents", [])
+
+        if agents:
+            for agent_id in agents:
+                st.write(f"• `{agent_id}`")
+        else:
+            st.write("No contributing agents.")
+
+        left, right = st.columns(2)
+
+        with left:
+            st.markdown("### Evidence")
+
+            evidence = decision.get("evidence", [])
+
+            if evidence:
+                for item in evidence:
+                    st.write(f"• {item}")
+            else:
+                st.write("No evidence available.")
+
+        with right:
+            st.markdown("### Recommendations")
+
+            recommendations = decision.get(
+                "recommendations",
+                [],
+            )
+
+            if recommendations:
+                for item in recommendations:
+                    st.write(f"• {item}")
+            else:
+                st.write("No recommendations available.")
+
+        st.markdown("### Decision Rationale")
+        st.write(
+            decision.get(
+                "rationale",
+                "No rationale available.",
+            )
+        )
+
+        st.markdown("### Execution Trace")
+
+        for step in assessment.get("trace", []):
+            st.write(f"✓ {step}")
+
+        st.caption(
+            "M14 · Multi-Agent Decision Orchestration · "
+            "Synthetic demo data · Read-only"
+        )
+
+
 # Copilot
 # ------------------------------------------------------------
 
