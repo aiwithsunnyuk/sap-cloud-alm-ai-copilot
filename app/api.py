@@ -849,8 +849,29 @@ from app.services.copilot_decision_orchestration import (
 )
 
 from app.models.copilot_decision_assessment import CopilotDecisionAssessment
+from app.models.copilot_decision_approval_request import CopilotDecisionApprovalRequest
 from app.models.copilot_multi_agent import CopilotMultiAgentDecisionRequest
 from app.services.copilot_decision_assessment import assess_multi_agent_decision
+
+from app.models.copilot_approval import (
+    CopilotApprovalRequest,
+    CopilotApprovalResult,
+)
+from app.services.copilot_approval_service import evaluate_approval
+
+from app.models.copilot_approval_audit import (
+    CopilotApprovalAuditRecord,
+    CopilotApprovalAuditSummary,
+)
+from app.services.copilot_approval_audit import (
+    get_approval_audit_record,
+    get_approval_audit_records,
+    get_approval_audit_summary,
+)
+
+from app.models.copilot_decision_approval import CopilotDecisionApprovalResult
+from app.models.copilot_decision_assessment import CopilotDecisionAssessment
+from app.services.copilot_decision_approval import evaluate_decision_approval
 
 @app.post("/copilot/query", response_model=CopilotResponse)
 def copilot_query(request: CopilotQueryRequest) -> CopilotResponse:
@@ -1025,6 +1046,73 @@ def orchestrate_copilot_decision(
 ) -> CopilotDecisionAssessment:
     """Build a deterministic multi-agent decision assessment."""
     return assess_multi_agent_decision(request)
+
+
+@app.post(
+    "/copilot/approvals/evaluate",
+    response_model=CopilotApprovalResult,
+)
+def evaluate_copilot_approval(
+    request: CopilotApprovalRequest,
+) -> CopilotApprovalResult:
+    """Evaluate whether a decision may proceed through human governance."""
+    return evaluate_approval(request)
+
+
+@app.get(
+    "/copilot/approvals/audit",
+    response_model=list[CopilotApprovalAuditRecord],
+)
+def get_copilot_approval_audit() -> list[CopilotApprovalAuditRecord]:
+    """Return recorded human-approval audit records."""
+    return get_approval_audit_records()
+
+
+@app.get(
+    "/copilot/approvals/audit/summary",
+    response_model=CopilotApprovalAuditSummary,
+)
+def get_copilot_approval_audit_summary() -> CopilotApprovalAuditSummary:
+    """Return an approval-audit status summary."""
+    return get_approval_audit_summary()
+
+
+@app.get(
+    "/copilot/approvals/audit/{audit_id}",
+    response_model=CopilotApprovalAuditRecord,
+)
+def get_copilot_approval_audit_record(
+    audit_id: str,
+) -> CopilotApprovalAuditRecord:
+    """Return one approval audit record."""
+    record = get_approval_audit_record(audit_id)
+
+    if record is None:
+        from fastapi import HTTPException
+
+        raise HTTPException(
+            status_code=404,
+            detail=f"Approval audit record not found: {audit_id}",
+        )
+
+    return record
+
+
+@app.post(
+    "/copilot/decisions/{decision_id}/approval",
+    response_model=CopilotDecisionApprovalResult,
+)
+def approve_copilot_decision(
+    decision_id: str,
+    request: CopilotDecisionApprovalRequest,
+) -> CopilotDecisionApprovalResult:
+    """Evaluate and audit human approval for a decision assessment."""
+    return evaluate_decision_approval(
+        decision_id=decision_id,
+        assessment=request.assessment,
+        approver=request.approver,
+        approval_comment=request.approval_comment,
+    )
 
 
 @app.get(

@@ -31,6 +31,57 @@ def _extract_list(data, key: str) -> list[str]:
     ]
 
 
+def _extract_recommendation_actions(data) -> list[str]:
+    actions: list[str] = []
+
+    def add(value) -> None:
+        if isinstance(value, str) and value and value not in actions:
+            actions.append(value)
+
+    def extract_items(items, fields) -> None:
+        if not isinstance(items, list):
+            return
+
+        for item in items:
+            # Preserve legacy/simple list payloads.
+            if isinstance(item, str):
+                add(item)
+                continue
+
+            if not isinstance(item, dict):
+                continue
+
+            for field in fields:
+                value = item.get(field)
+
+                if isinstance(value, str) and value:
+                    add(value)
+                    break
+
+    if not isinstance(data, dict):
+        return actions
+
+    # Recommendation service contract.
+    extract_items(
+        data.get("recommendations"),
+        ("action", "recommendation", "recommended_action"),
+    )
+
+    # Correlation service contract.
+    extract_items(
+        data.get("correlations"),
+        ("recommended_action",),
+    )
+
+    # Direct recommended_action remains supported.
+    direct_action = data.get("recommended_action")
+    if isinstance(direct_action, str) and direct_action:
+        add(direct_action)
+
+    return actions
+
+
+
 def build_agent_contribution(
     agent_id: str,
     orchestration: CopilotOrchestrationResult,
@@ -56,7 +107,7 @@ def build_agent_contribution(
         )
 
         recommendations.extend(
-            _extract_list(tool_result.data, "recommendations")
+            _extract_recommendation_actions(tool_result.data)
         )
 
     evidence = _unique(evidence)
