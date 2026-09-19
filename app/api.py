@@ -110,12 +110,35 @@ def get_projects():
 from app.services.task_service import get_application_tasks
 
 from app.models.calm_source_status import CalmSourceStatus
+from app.models.calm_task_retrieval import CalmTaskRetrievalResponse
 from app.services.calm_source_status import get_calm_source_status
+from app.services.calm_task_retrieval import retrieve_calm_tasks
 
 @app.get(
     "/integration/calm/status",
     response_model=CalmSourceStatus,
 )
+@app.get(
+    "/integration/calm/tasks",
+    response_model=CalmTaskRetrievalResponse,
+)
+def get_calm_tasks(
+    project_id: str | None = None,
+    limit: int | None = None,
+) -> CalmTaskRetrievalResponse:
+    """Retrieve tasks explicitly from SAP Cloud ALM."""
+    source, tasks = retrieve_calm_tasks(
+        project_id=project_id,
+        limit=limit,
+    )
+
+    return CalmTaskRetrievalResponse(
+        data_source=source,
+        count=len(tasks),
+        tasks=tasks,
+    )
+
+
 def get_calm_integration_status() -> CalmSourceStatus:
     """Return safe SAP Cloud ALM data-source health information."""
     return get_calm_source_status()
