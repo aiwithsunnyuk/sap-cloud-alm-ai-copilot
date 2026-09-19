@@ -107,10 +107,17 @@ def get_projects():
     return load_json("projects.json")
 
 
-@app.get("/tasks")
-def get_tasks():
-    return load_json("tasks.json")
+from app.services.task_service import get_application_tasks
 
+@app.get("/tasks")
+def get_tasks(
+    project_id: str | None = None,
+    limit: int | None = None,
+):
+    return get_application_tasks(
+        project_id=project_id,
+        limit=limit,
+    )
 
 @app.get("/risks")
 def get_risks():
