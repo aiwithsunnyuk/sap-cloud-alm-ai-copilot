@@ -54,6 +54,52 @@ def health_color(health: str) -> str:
 st.title("SAP Cloud ALM AI Copilot")
 st.caption("Delivery Intelligence • Risk • Health • Early Warnings")
 
+# M16.5 SAP Cloud ALM source status
+try:
+    source_status = api_get("/integration/calm/status")
+
+    st.markdown("### SAP Cloud ALM Data Source")
+
+    s1, s2, s3, s4 = st.columns(4)
+
+    with s1:
+        st.metric(
+            "Data Source",
+            source_status.get("data_source", "unknown").title(),
+        )
+
+    with s2:
+        st.metric(
+            "Configured",
+            "Yes" if source_status.get("configured") else "No",
+        )
+
+    with s3:
+        st.metric(
+            "Authenticated",
+            "Yes" if source_status.get("authenticated") else "No",
+        )
+
+    with s4:
+        st.metric(
+            "Connection",
+            source_status.get(
+                "connection_status",
+                "unknown",
+            ).replace("_", " ").title(),
+        )
+
+    st.caption(
+        source_status.get(
+            "message",
+            "No source status message available.",
+        )
+    )
+
+except Exception as exc:
+    st.warning(f"Data source status unavailable: {exc}")
+
+
 st.divider()
 
 try:
